@@ -1,0 +1,93 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-body: #f0f0f5;
+    --color-canvas: #0b1018;
+    --color-surface: #151c28;
+    --color-edge: #2d3748;
+    --color-title: #f3f6fa;
+    --color-text: #a3adbd;
+    --color-field-label: #a3adbd;
+    --color-header-bg: rgba(11, 16, 24, 0.94);
+    --color-accent: #05f283;
+    --color-accent-soft: rgba(5, 242, 131, 0.12);
+    --color-btn-outline-border: #4b5563;
+    --color-btn-outline-text: #c5cad3;
+    --color-seller-hero: #121a26;
+    --color-onboarding-card: #ffffff;
+    --color-onboarding-title: #0b1c26;
+    --color-onboarding-text: #6c6c80;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    min-height: 100%;
+  }
+
+  body {
+    @apply font-secondary antialiased text-text bg-canvas;
+  }
+}
+
+@layer utilities {
+  .field-label {
+    @apply font-medium text-sm;
+    color: var(--color-field-label);
+  }
+  .field-group {
+    @apply flex flex-col gap-1.5 sm:gap-2;
+  }
+  .field-hint {
+    @apply text-xs;
+    color: var(--color-field-label);
+  }
+  .input {
+    @apply min-h-14 max-h-14 rounded-[9px] w-full outline-none px-6 bg-body text-title placeholder:text-text border border-transparent;
+    @apply font-medium text-sm sm:text-base;
+  }
+  .dark .input {
+    @apply bg-[#1c2433] text-title;
+  }
+  .error-input {
+    @apply border-[2px] border-text-red;
+  }
+  .error-legend {
+    @apply sm:text-sm text-xs font-medium text-red-600 mt-1 dark:text-red-400;
+  }
+  .button {
+    @apply inline-flex min-h-12 items-center justify-center rounded-[9px] px-8 py-2 text-sm font-bold transition-all md:text-base;
+  }
+  .button-accent {
+    @apply bg-gradient-to-t from-accent-hover to-accent text-white hover:opacity-95;
+  }
+  .button-outline {
+    border: 1px solid var(--color-btn-outline-border);
+    color: var(--color-btn-outline-text);
+    @apply bg-transparent hover:bg-white/5;
+  }
+  .button-disabled {
+    @apply cursor-not-allowed bg-gray-600 text-gray-300 opacity-70;
+  }
+  .onboarding-card {
+    background: var(--color-onboarding-card);
+    @apply rounded-2xl border border-gray-200 shadow-lg px-6 py-8 sm:px-10 sm:py-10;
+  }
+  .onboarding-title {
+    color: var(--color-onboarding-title);
+    @apply font-primary text-2xl font-bold leading-tight sm:text-3xl;
+  }
+  .onboarding-text {
+    color: var(--color-onboarding-text);
+    @apply text-sm leading-6 sm:text-base;
+  }
+  .surface-card {
+    @apply rounded-[14px] border border-edge bg-surface shadow-sm;
+  }
+}
