@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
-
+import { SellerNavLink } from "../navigation/SellerNavLink";
 import { useSellerAuth } from "../../contexts/SellerAuthContext";
+import { useSellerNavigation } from "../../contexts/SellerNavigationContext";
 
 type SellerSiteHeaderProps = {
   compact?: boolean;
@@ -8,7 +8,7 @@ type SellerSiteHeaderProps = {
 
 export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
   const { isAuthenticated, signOut } = useSellerAuth();
-  const navigate = useNavigate();
+  const { navigateWithFeedback } = useSellerNavigation();
 
   return (
     <header
@@ -17,19 +17,19 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2.5 text-title">
+        <SellerNavLink to="/" className="flex items-center gap-2.5 text-title">
           <img src="/recoll-icon.svg" alt="" width={36} height={36} className="rounded-full" />
           <span className="font-primary text-xl font-bold tracking-tight sm:text-2xl">
             Recoll <span className="text-accent">Vender</span>
           </span>
-        </Link>
+        </SellerNavLink>
         <div className="flex items-center gap-2 sm:gap-3">
           {isAuthenticated ? (
             <>
               <button
                 type="button"
                 className="button button-outline hidden min-h-10 px-5 text-sm sm:inline-flex"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => void navigateWithFeedback("/dashboard")}
               >
                 Painel
               </button>
@@ -38,7 +38,7 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
                 className="button button-outline min-h-10 px-5 text-sm"
                 onClick={() => {
                   signOut();
-                  navigate("/");
+                  void navigateWithFeedback("/");
                 }}
               >
                 Sair
@@ -46,15 +46,18 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
             </>
           ) : (
             <>
-              <Link
+              <SellerNavLink
                 to="/login"
                 className="hidden text-sm font-semibold text-outline hover:text-title sm:inline"
               >
                 Entrar
-              </Link>
-              <Link to="/register/terms" className="button button-accent min-h-10 px-5 text-sm">
+              </SellerNavLink>
+              <SellerNavLink
+                to="/register/terms"
+                className="button button-accent min-h-10 px-5 text-sm"
+              >
                 Começar a vender
-              </Link>
+              </SellerNavLink>
             </>
           )}
         </div>

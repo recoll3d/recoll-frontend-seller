@@ -7,6 +7,7 @@ import { SellerLandingPage } from "./pages/SellerLandingPage";
 import { SellerLoginPlaceholderPage } from "./pages/SellerLoginPlaceholderPage";
 import { SellerOnboardingPlaceholderPage } from "./pages/SellerOnboardingPlaceholderPage";
 import { SellerOnboardingTermsPage } from "./pages/SellerOnboardingTermsPage";
+import { ProductApprovalPolicyPage } from "./pages/legal/ProductApprovalPolicyPage";
 
 function SellerHomeRoute() {
   const { isAuthenticated } = useSellerAuth();
@@ -45,6 +46,10 @@ export function AppRoutes() {
             <SellerLoginPlaceholderPage />
           </SellerGuestOnly>
         }
+      />
+      <Route
+        path="/legal/product-approval-policy"
+        element={<ProductApprovalPolicyPage />}
       />
       <Route path="/register/terms" element={<SellerOnboardingTermsPage />} />
       <Route

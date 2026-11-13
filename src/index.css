@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --color-body: #f0f0f5;
+    --color-body: #1c2433;
     --color-canvas: #0b1018;
     --color-surface: #151c28;
     --color-edge: #2d3748;
@@ -19,9 +19,6 @@
     --color-btn-outline-border: #4b5563;
     --color-btn-outline-text: #c5cad3;
     --color-seller-hero: #121a26;
-    --color-onboarding-card: #ffffff;
-    --color-onboarding-title: #0b1c26;
-    --color-onboarding-text: #6c6c80;
   }
 
   html,
@@ -37,6 +34,12 @@
 }
 
 @layer utilities {
+  .page-content {
+    @apply min-h-full w-full px-4 pb-16 pt-6 sm:px-5 sm:pt-8;
+  }
+  .page-title {
+    @apply font-primary text-3xl font-bold text-title sm:text-4xl;
+  }
   .field-label {
     @apply font-medium text-sm;
     color: var(--color-field-label);
@@ -49,17 +52,14 @@
     color: var(--color-field-label);
   }
   .input {
-    @apply min-h-14 max-h-14 rounded-[9px] w-full outline-none px-6 bg-body text-title placeholder:text-text border border-transparent;
-    @apply font-medium text-sm sm:text-base;
-  }
-  .dark .input {
-    @apply bg-[#1c2433] text-title;
+    @apply min-h-14 max-h-14 rounded-[9px] w-full outline-none px-6 text-title placeholder:text-text border border-edge;
+    @apply font-medium text-sm sm:text-base bg-body;
   }
   .error-input {
     @apply border-[2px] border-text-red;
   }
   .error-legend {
-    @apply sm:text-sm text-xs font-medium text-red-600 mt-1 dark:text-red-400;
+    @apply sm:text-sm text-xs font-medium text-red-400 mt-1;
   }
   .button {
     @apply inline-flex min-h-12 items-center justify-center rounded-[9px] px-8 py-2 text-sm font-bold transition-all md:text-base;
@@ -76,18 +76,18 @@
     @apply cursor-not-allowed bg-gray-600 text-gray-300 opacity-70;
   }
   .onboarding-card {
-    background: var(--color-onboarding-card);
-    @apply rounded-2xl border border-gray-200 shadow-lg px-6 py-8 sm:px-10 sm:py-10;
+    @apply rounded-2xl border border-edge bg-surface shadow-lg px-6 py-8 sm:px-10 sm:py-10;
   }
   .onboarding-title {
-    color: var(--color-onboarding-title);
-    @apply font-primary text-2xl font-bold leading-tight sm:text-3xl;
+    @apply font-primary text-2xl font-bold leading-tight text-title sm:text-3xl;
   }
   .onboarding-text {
-    color: var(--color-onboarding-text);
-    @apply text-sm leading-6 sm:text-base;
+    @apply text-sm leading-6 text-text sm:text-base;
   }
   .surface-card {
     @apply rounded-[14px] border border-edge bg-surface shadow-sm;
+  }
+  .progress-bar-fill {
+    @apply bg-gradient-to-r from-accent-hover to-accent;
   }
 }

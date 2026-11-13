@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
-
 import { OnboardingShell } from "../components/onboarding/OnboardingShell";
 import { SellerSiteHeader } from "../components/layout/SellerSiteHeader";
+import { SellerNavLink } from "../components/navigation/SellerNavLink";
 
 export function SellerOnboardingPlaceholderPage() {
   return (
@@ -9,21 +8,18 @@ export function SellerOnboardingPlaceholderPage() {
       <SellerSiteHeader compact />
       <OnboardingShell
         progressPercent={15}
-        title="Próxima etapa em breve"
-        description="A etapa seguinte (país / tipo de negócio) será a próxima entrega. Seu aceite dos termos já foi salvo neste navegador."
+        title="Cadastro em andamento"
+        description="Os próximos passos (tipo de negócio, dados da loja e documentos) serão liberados em atualizações desta aplicação. Seu aceite dos termos permanece salvo neste navegador."
         backTo="/register/terms"
         footer={
-          <Link to="/" className="button button-outline w-full sm:w-auto">
-            Voltar à página inicial
-          </Link>
+          <SellerNavLink to="/" className="button button-outline w-full sm:w-auto">
+            Voltar ao início
+          </SellerNavLink>
         }
       >
         <p className="onboarding-text">
-          Consulte{" "}
-          <code className="rounded bg-gray-100 px-1 text-xs text-title">
-            docs/SELLER_APP_BACKLOG.md
-          </code>{" "}
-          para ver a ordem das telas.
+          Enquanto isso, você pode explorar o painel em modo de demonstração após entrar com seu
+          e-mail na página de login.
         </p>
       </OnboardingShell>
     </div>

@@ -71,6 +71,7 @@ Backlog vivo: ideias e compromissos que surgem no chat. **Marcar `[x]` ao entreg
 
 - [x] Hero + CTA “Começar a vender”.
 - [ ] Bloco “3 motivos” (cards).
+- [x] Página `/legal/product-approval-policy` (link nova aba no cadastro).
 - [ ] FAQ em acordeão (PF/PJ, documentos, frete, aprovação).
 - [ ] Prova social (depoimentos) — quando tiver cases reais.
 - [ ] Link “Já vendo na Recoll” → login.

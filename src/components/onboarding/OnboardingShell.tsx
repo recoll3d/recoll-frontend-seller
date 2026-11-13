@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa6";
+
+import { SellerNavLink } from "../navigation/SellerNavLink";
 
 type OnboardingShellProps = {
   progressPercent: number;
@@ -24,17 +25,17 @@ export function OnboardingShell({
   const clamped = Math.min(100, Math.max(0, progressPercent));
 
   return (
-    <div className="min-h-full bg-[#e8eaef] px-4 py-8 sm:py-12">
+    <div className="min-h-full bg-canvas px-4 py-8 sm:py-12">
       <div className="mx-auto w-full max-w-xl">
         <div className="onboarding-card">
           <div className="mb-8 flex items-center gap-3">
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
+            <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-edge/80">
               <div
-                className="h-full rounded-full bg-title transition-all duration-300"
+                className="progress-bar-fill h-full rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${clamped}%` }}
               />
             </div>
-            <span className="text-sm font-bold text-title">{clamped}%</span>
+            <span className="text-sm font-bold text-accent">{clamped}%</span>
           </div>
 
           <h1 className="onboarding-title">{title}</h1>
@@ -46,13 +47,13 @@ export function OnboardingShell({
 
           {footer ? (
             <div className="mt-10 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Link
+              <SellerNavLink
                 to={backTo}
                 className="inline-flex items-center gap-2 text-sm font-bold text-outline hover:text-title"
               >
                 <FaArrowLeft aria-hidden />
                 {backLabel}
-              </Link>
+              </SellerNavLink>
               {footer}
             </div>
           ) : null}
