@@ -5,7 +5,6 @@ import { useSellerAuth } from "./contexts/SellerAuthContext";
 import { SellerDashboardPlaceholderPage } from "./pages/SellerDashboardPlaceholderPage";
 import { SellerLandingPage } from "./pages/SellerLandingPage";
 import { SellerLoginPlaceholderPage } from "./pages/SellerLoginPlaceholderPage";
-import { SellerOnboardingPlaceholderPage } from "./pages/SellerOnboardingPlaceholderPage";
 import { SellerOnboardingTermsPage } from "./pages/SellerOnboardingTermsPage";
 import { SellerOnboardingBusinessTypePage } from "./pages/register/SellerOnboardingBusinessTypePage";
 import { SellerOnboardingAccountPage } from "./pages/register/SellerOnboardingAccountPage";
@@ -64,7 +63,7 @@ export function AppRoutes() {
       <Route path="/register/store" element={<SellerOnboardingStorePage />} />
       <Route path="/register/shipping" element={<SellerOnboardingShippingPage />} />
       <Route path="/register/review" element={<SellerOnboardingReviewPage />} />
-      <Route path="/register/submitted" element={<SellerOnboardingPlaceholderPage />} />
+      <Route path="/register/submitted" element={<Navigate to="/dashboard" replace />} />
       <Route path="/register/coming-soon" element={<Navigate to="/register/review" replace />} />
       <Route
         path="/dashboard"

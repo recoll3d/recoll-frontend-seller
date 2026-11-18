@@ -55,7 +55,7 @@ export function SellerOnboardingReviewPage() {
           submittedAt: new Date().toISOString(),
           accountPassword: "",
         });
-        void navigateWithFeedback("/register/submitted");
+        void navigateWithFeedback("/dashboard");
       })
       .catch((error: unknown) => {
         setSubmitError(

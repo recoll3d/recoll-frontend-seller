@@ -87,6 +87,26 @@
   .button {
     @apply inline-flex min-h-12 items-center justify-center rounded-[9px] px-8 py-2 text-sm font-bold transition-all md:text-base;
   }
+  .seller-header-cta {
+    min-height: 2.5rem;
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+    font-size: 0.875rem;
+  }
+  @media (min-width: 400px) {
+    .seller-header-cta {
+      padding-left: 0.875rem;
+      padding-right: 0.875rem;
+    }
+  }
+  @media (min-width: 640px) {
+    .seller-header-cta {
+      min-height: 3rem;
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+      font-size: 1rem;
+    }
+  }
   .button-accent {
     @apply bg-gradient-to-t from-accent-hover to-accent text-white hover:opacity-95;
   }
@@ -208,5 +228,16 @@
   }
   to {
     opacity: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  header .seller-header-row {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  .seller-header-cta {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
   }
 }

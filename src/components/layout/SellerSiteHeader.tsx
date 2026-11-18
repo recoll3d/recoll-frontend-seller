@@ -16,16 +16,16 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
         compact ? "py-3" : "py-4"
       }`}
     >
-      <div className="seller-site-x mx-auto flex w-full items-center justify-between gap-1.5 max-[380px]:px-2 sm:gap-4">
+      <div className="seller-site-x seller-header-row mx-auto flex w-full items-center justify-between gap-1.5 max-[380px]:px-2 sm:gap-4">
         <SellerNavLink
           to="/"
-          className="-ml-0.5 flex shrink-0 items-center gap-1 sm:gap-2 lg:-ml-1"
+          className="-ml-0.5 flex shrink-0 items-center gap-3 sm:gap-2 lg:-ml-1"
           aria-label="Recoll"
         >
           <img src="/recoll-icon.svg" alt="" className="h-6 w-6" />
           <img src="/recoll-wordmark.svg" alt="Recoll" className="h-3.5 w-auto" />
         </SellerNavLink>
-        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-3 sm:gap-4">
           {isAuthenticated ? (
             <>
               <button
@@ -56,7 +56,7 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
               </SellerNavLink>
               <SellerNavLink
                 to="/register/terms"
-                className="button button-accent min-h-10 px-2 text-sm min-[380px]:px-3.5 sm:min-h-12 sm:px-10 sm:text-base"
+                className="button button-accent seller-header-cta"
               >
                 Começar a vender
               </SellerNavLink>
