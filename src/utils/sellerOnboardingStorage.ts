@@ -10,8 +10,9 @@ export type SellerOnboardingDraft = {
   businessType?: SellerBusinessType;
   /** Apenas dígitos — CPF (11) ou CNPJ (14) */
   taxDocument?: string;
-  /** E-mail da conta (senha não é salva no rascunho). */
+  /** E-mail e senha ficam só no sessionStorage do cadastro. A landing apaga o rascunho. */
   accountEmail?: string;
+  accountPassword?: string;
   storeName?: string;
   storeSlug?: string;
   shippingPostalCode?: string;

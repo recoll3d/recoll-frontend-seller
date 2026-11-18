@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 
 import { FormPasswordField } from "../../components/forms/FormPasswordField";
 import { FormTextField } from "../../components/forms/FormTextField";
@@ -20,8 +20,8 @@ export function SellerOnboardingAccountPage() {
   const { navigateWithFeedback, navigating } = useSellerNavigation();
   const draft = loadOnboardingDraft();
   const [email, setEmail] = useState(draft.accountEmail ?? "");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [password, setPassword] = useState(draft.accountPassword ?? "");
+  const [confirmPassword, setConfirmPassword] = useState(draft.accountPassword ?? "");
   const [submitted, setSubmitted] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false, confirm: false });
 
@@ -40,6 +40,13 @@ export function SellerOnboardingAccountPage() {
     return getPasswordConfirmError(password, confirmPassword);
   }, [password, confirmPassword, touched.confirm, submitted]);
 
+  useEffect(() => {
+    saveOnboardingDraft({
+      accountEmail: email.trim().toLowerCase(),
+      accountPassword: password,
+    });
+  }, [email, password]);
+
   const canAdvance =
     !getEmailFormatError(email) &&
     !getPasswordError(password) &&
@@ -53,7 +60,10 @@ export function SellerOnboardingAccountPage() {
     const pErr = getPasswordError(password);
     const cErr = getPasswordConfirmError(password, confirmPassword);
     if (eErr || pErr || cErr) return;
-    saveOnboardingDraft({ accountEmail: email.trim().toLowerCase() });
+    saveOnboardingDraft({
+      accountEmail: email.trim().toLowerCase(),
+      accountPassword: password,
+    });
     void navigateWithFeedback("/register/store");
   };
 

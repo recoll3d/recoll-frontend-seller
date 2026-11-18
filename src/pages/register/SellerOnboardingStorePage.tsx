@@ -46,7 +46,7 @@ export function SellerOnboardingStorePage() {
   const canAdvance =
     !getStoreNameError(storeName) &&
     !slugFormatError &&
-    (availability === "free" || availability === "unchecked") &&
+    availability !== "taken" &&
     !navigating;
 
   useEffect(() => {
@@ -59,7 +59,6 @@ export function SellerOnboardingStorePage() {
 
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      setAvailability("checking");
       void checkStoreSlugAvailability(storeSlug, controller.signal)
         .then((result) => {
           if (controller.signal.aborted) return;
@@ -77,23 +76,26 @@ export function SellerOnboardingStorePage() {
           setAvailability("taken");
           setAvailabilityMessage("Esse endereço já está em uso. Escolha uma sugestão ou outro slug.");
         })
-        .catch((error: unknown) => {
+        .catch(() => {
           if (controller.signal.aborted) return;
-          setAvailability("error");
+          setAvailability("unchecked");
           setSuggestions([]);
-          setAvailabilityMessage(
-            error instanceof Error
-              ? error.message
-              : "Não foi possível verificar se esse endereço está livre."
-          );
+          setAvailabilityMessage(null);
         });
-    }, 350);
+    }, 180);
 
     return () => {
       controller.abort();
       window.clearTimeout(timer);
     };
   }, [storeSlug, slugFormatError]);
+
+  useEffect(() => {
+    saveOnboardingDraft({
+      storeName: storeName.trim(),
+      storeSlug: storeSlug.trim(),
+    });
+  }, [storeName, storeSlug]);
 
   const onNameChange = (value: string) => {
     setStoreName(value);
@@ -107,7 +109,7 @@ export function SellerOnboardingStorePage() {
     setSubmitted(true);
     const nErr = getStoreNameError(storeName);
     const sErr = getStoreSlugError(storeSlug);
-    if (nErr || sErr || (availability !== "free" && availability !== "unchecked")) return;
+    if (nErr || sErr || availability === "taken") return;
     saveOnboardingDraft({
       storeName: storeName.trim(),
       storeSlug: storeSlug.trim(),
@@ -157,9 +159,7 @@ export function SellerOnboardingStorePage() {
               value={storeSlug}
               error={slugFieldError}
               hint={
-                availability === "checking"
-                  ? "Verificando se o endereço está livre…"
-                  : availability === "free"
+                availability === "free"
                     ? "Endereço disponível."
                     : "O nome da loja preenche este campo até você editá-lo. Ele não altera o nome público."
               }

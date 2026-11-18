@@ -22,7 +22,7 @@ import {
 import { clearOnboardingDraft } from "../utils/sellerOnboardingStorage";
 
 const STATS = [
-  { value: "Brasil", label: "Cadastro focado no mercado local" },
+  { value: "Brasil", label: "Lojas pensadas para o comprador daqui" },
   { value: "Checkout", label: "Frete calculado antes do pagamento" },
   { value: "Painel", label: "Pedidos e loja em um só lugar" },
 ];

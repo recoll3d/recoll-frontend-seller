@@ -14,10 +14,21 @@ export async function checkStoreSlugAvailability(
     throw new Error("API de vendedores não configurada.");
   }
 
-  const response = await fetch(
-    `${base}/marketplace/store-slug/availability?slug=${encodeURIComponent(slug)}`,
-    { signal }
-  );
+  const timeout = new AbortController();
+  const timer = window.setTimeout(() => timeout.abort(), 1600);
+  signal?.addEventListener("abort", () => {
+    window.clearTimeout(timer);
+    timeout.abort();
+  });
+  let response: Response;
+  try {
+    response = await fetch(
+      `${base}/marketplace/store-slug/availability?slug=${encodeURIComponent(slug)}`,
+      { signal: timeout.signal }
+    );
+  } finally {
+    window.clearTimeout(timer);
+  }
   if (response.status === 404) {
     return { available: true, suggestions: [], unchecked: true };
   }
