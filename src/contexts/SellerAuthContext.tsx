@@ -9,15 +9,19 @@ import {
 
 const STORAGE_KEY = "recoll.seller.session";
 
-type SellerSession = {
+export type SellerSession = {
+  token: string;
   email: string;
-  sellerId?: string;
+  sellerId: string;
+  storeName: string;
+  storeSlug: string;
+  status: string;
 };
 
 type SellerAuthContextValue = {
   session: SellerSession | null;
   isAuthenticated: boolean;
-  signInPlaceholder: (email: string) => void;
+  signIn: (session: SellerSession) => void;
   signOut: () => void;
 };
 
@@ -27,7 +31,16 @@ function loadSession(): SellerSession | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as SellerSession;
+    const parsed = JSON.parse(raw) as Partial<SellerSession>;
+    if (!parsed.token || !parsed.email || !parsed.sellerId) return null;
+    return {
+      token: parsed.token,
+      email: parsed.email,
+      sellerId: parsed.sellerId,
+      storeName: parsed.storeName ?? "",
+      storeSlug: parsed.storeSlug ?? "",
+      status: parsed.status ?? "pending_approval",
+    };
   } catch {
     return null;
   }
@@ -36,8 +49,7 @@ function loadSession(): SellerSession | null {
 export function SellerAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SellerSession | null>(() => loadSession());
 
-  const signInPlaceholder = useCallback((email: string) => {
-    const next = { email: email.trim() };
+  const signIn = useCallback((next: SellerSession) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     setSession(next);
   }, []);
@@ -50,11 +62,11 @@ export function SellerAuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       session,
-      isAuthenticated: Boolean(session?.email),
-      signInPlaceholder,
+      isAuthenticated: Boolean(session?.token && session.email),
+      signIn,
       signOut,
     }),
-    [session, signInPlaceholder, signOut]
+    [session, signIn, signOut]
   );
 
   return (

@@ -1,18 +1,24 @@
 import { type FormEvent, useState } from "react";
 
+import { FormPasswordField } from "../components/forms/FormPasswordField";
 import { FormTextField } from "../components/forms/FormTextField";
 import { SellerSiteHeader } from "../components/layout/SellerSiteHeader";
 import { SellerNavLink } from "../components/navigation/SellerNavLink";
 import { useSellerAuth } from "../contexts/SellerAuthContext";
 import { useSellerNavigation } from "../contexts/SellerNavigationContext";
-import { getEmailFormatError } from "../utils/formInput";
+import { loginSellerAccount } from "../services/sellerAccount";
+import { getEmailFormatError, getPasswordError } from "../utils/formInput";
 
 export function SellerLoginPlaceholderPage() {
   const { navigateWithFeedback, navigating } = useSellerNavigation();
-  const { signInPlaceholder } = useSellerAuth();
+  const { signIn } = useSellerAuth();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const validateEmail = (value: string) => getEmailFormatError(value);
 
@@ -25,13 +31,30 @@ export function SellerLoginPlaceholderPage() {
     event.preventDefault();
     setSubmitted(true);
     const err = validateEmail(email);
-    if (err) {
-      setEmailError(err);
-      return;
-    }
+    const passwordErr = getPasswordError(password);
+    setEmailError(err);
+    setPasswordError(passwordErr);
+    if (err || passwordErr) return;
     setEmailError(null);
-    signInPlaceholder(email.trim());
-    void navigateWithFeedback("/dashboard");
+    setPasswordError(null);
+    setFormError(null);
+    setSending(true);
+    void loginSellerAccount(email.trim(), password)
+      .then((result) => {
+        signIn({
+          token: result.token,
+          email: result.seller.email,
+          sellerId: result.seller.id,
+          storeName: result.seller.storeName,
+          storeSlug: result.seller.storeSlug,
+          status: result.seller.status,
+        });
+        void navigateWithFeedback("/dashboard");
+      })
+      .catch((error: unknown) => {
+        setFormError(error instanceof Error ? error.message : "Não foi possível entrar.");
+      })
+      .finally(() => setSending(false));
   };
 
   return (
@@ -41,8 +64,7 @@ export function SellerLoginPlaceholderPage() {
         <div className="onboarding-card">
           <h1 className="onboarding-title">Entrar como vendedor</h1>
           <p className="onboarding-text mt-2">
-            Use o e-mail da sua conta de vendedor. Em breve este login será integrado ao backend da
-            Recoll.
+            Use o e-mail e a senha da sua conta de vendedor.
           </p>
           <form className="mt-8 space-y-6" onSubmit={onSubmit} noValidate>
             <FormTextField
@@ -62,12 +84,29 @@ export function SellerLoginPlaceholderPage() {
               }}
               onBlur={onBlurEmail}
             />
+            <FormPasswordField
+              id="seller-login-password"
+              label="Senha"
+              autoComplete="current-password"
+              value={password}
+              error={passwordError}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                if (submitted || passwordError) {
+                  setPasswordError(getPasswordError(event.target.value));
+                }
+              }}
+              onBlur={() => {
+                if (submitted || password) setPasswordError(getPasswordError(password));
+              }}
+            />
+            {formError ? <p className="error-legend">{formError}</p> : null}
             <button
               type="submit"
-              className={`button w-full ${navigating ? "button-disabled" : "button-accent"}`}
-              disabled={navigating}
+              className={`button w-full ${navigating || sending ? "button-disabled" : "button-accent"}`}
+              disabled={navigating || sending}
             >
-              Continuar
+              {sending ? "Entrando…" : "Entrar"}
             </button>
           </form>
           <p className="mt-6 text-center text-sm text-text">

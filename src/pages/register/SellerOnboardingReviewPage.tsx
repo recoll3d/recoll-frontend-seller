@@ -1,10 +1,12 @@
-import { type FormEvent, type ReactNode } from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
 
 import { OnboardingShell } from "../../components/onboarding/OnboardingShell";
 import { RegisterOnboardingGuard } from "../../components/onboarding/RegisterOnboardingGuard";
 import { SellerSiteHeader } from "../../components/layout/SellerSiteHeader";
 import { SellerNavLink } from "../../components/navigation/SellerNavLink";
+import { useSellerAuth } from "../../contexts/SellerAuthContext";
 import { useSellerNavigation } from "../../contexts/SellerNavigationContext";
+import { registerSellerAccount } from "../../services/sellerAccount";
 import { formatCep } from "../../utils/viacep";
 import { formatCnpj, formatCpf } from "../../utils/taxDocument";
 import {
@@ -14,6 +16,9 @@ import {
 
 export function SellerOnboardingReviewPage() {
   const { navigateWithFeedback, navigating } = useSellerNavigation();
+  const { signIn } = useSellerAuth();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
   const draft = loadOnboardingDraft();
   const document =
     draft.businessType === "company"
@@ -33,8 +38,31 @@ export function SellerOnboardingReviewPage() {
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    saveOnboardingDraft({ submittedAt: new Date().toISOString() });
-    void navigateWithFeedback("/register/submitted");
+    if (sending || navigating) return;
+    setSending(true);
+    setSubmitError(null);
+    void registerSellerAccount(draft)
+      .then((result) => {
+        signIn({
+          token: result.token,
+          email: result.seller.email,
+          sellerId: result.seller.id,
+          storeName: result.seller.storeName,
+          storeSlug: result.seller.storeSlug,
+          status: result.seller.status,
+        });
+        saveOnboardingDraft({
+          submittedAt: new Date().toISOString(),
+          accountPassword: "",
+        });
+        void navigateWithFeedback("/register/submitted");
+      })
+      .catch((error: unknown) => {
+        setSubmitError(
+          error instanceof Error ? error.message : "Não foi possível enviar o cadastro."
+        );
+      })
+      .finally(() => setSending(false));
   };
 
   return (
@@ -58,11 +86,11 @@ export function SellerOnboardingReviewPage() {
               type="submit"
               form="seller-review-form"
               className={`button w-full sm:w-auto sm:min-w-[200px] ${
-                navigating ? "button-disabled" : "button-accent"
+                navigating || sending ? "button-disabled" : "button-accent"
               }`}
-              disabled={navigating}
+              disabled={navigating || sending}
             >
-              Enviar cadastro
+              {sending ? "Enviando…" : "Enviar cadastro"}
             </button>
           }
         >
@@ -83,6 +111,7 @@ export function SellerOnboardingReviewPage() {
             <ReviewBlock title="Envio" editTo="/register/shipping">
               <p>{address}</p>
             </ReviewBlock>
+            {submitError ? <p className="error-legend">{submitError}</p> : null}
           </form>
         </OnboardingShell>
       </div>
