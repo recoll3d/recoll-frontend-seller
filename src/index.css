@@ -55,6 +55,15 @@
     @apply min-h-14 max-h-14 rounded-[9px] w-full outline-none px-6 text-title placeholder:text-text border border-edge;
     @apply font-medium text-sm sm:text-base bg-body;
   }
+  .input:-webkit-autofill,
+  .input:-webkit-autofill:hover,
+  .input:-webkit-autofill:focus,
+  .input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--color-title);
+    caret-color: var(--color-title);
+    box-shadow: 0 0 0 1000px var(--color-body) inset;
+    transition: background-color 99999s ease-out;
+  }
   .input-password {
     @apply pr-14;
   }
@@ -124,7 +133,8 @@
   }
   @media (min-width: 1024px) {
     .seller-hero-grid {
-      min-height: calc(100dvh - 4.75rem);
+      height: clamp(440px, 68dvh, 560px);
+      min-height: clamp(440px, 68dvh, 560px);
     }
   }
   .seller-hero-copy {

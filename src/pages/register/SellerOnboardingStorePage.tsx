@@ -1,10 +1,11 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 
 import { FormTextField } from "../../components/forms/FormTextField";
 import { OnboardingShell } from "../../components/onboarding/OnboardingShell";
 import { RegisterOnboardingGuard } from "../../components/onboarding/RegisterOnboardingGuard";
 import { SellerSiteHeader } from "../../components/layout/SellerSiteHeader";
 import { useSellerNavigation } from "../../contexts/SellerNavigationContext";
+import { checkStoreSlugAvailability } from "../../services/storeSlugAvailability";
 import {
   getStoreNameError,
   getStoreSlugError,
@@ -23,21 +24,76 @@ export function SellerOnboardingStorePage() {
   const [slugTouched, setSlugTouched] = useState(Boolean(draft.storeSlug));
   const [submitted, setSubmitted] = useState(false);
   const [touched, setTouched] = useState({ name: false, slug: false });
+  const [availability, setAvailability] = useState<
+    "idle" | "checking" | "free" | "taken" | "error" | "unchecked"
+  >("idle");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(null);
 
   const nameError = useMemo(() => {
     if (!touched.name && !submitted) return null;
     return getStoreNameError(storeName);
   }, [storeName, touched.name, submitted]);
 
-  const slugError = useMemo(() => {
-    if (!touched.slug && !submitted) return null;
-    return getStoreSlugError(storeSlug);
-  }, [storeSlug, touched.slug, submitted]);
+  const slugFormatError = getStoreSlugError(storeSlug);
+  const slugFieldError =
+    (touched.slug || submitted) && slugFormatError
+      ? slugFormatError
+      : !slugFormatError && (availability === "taken" || availability === "error")
+        ? availabilityMessage
+        : null;
 
   const canAdvance =
     !getStoreNameError(storeName) &&
-    !getStoreSlugError(storeSlug) &&
+    !slugFormatError &&
+    (availability === "free" || availability === "unchecked") &&
     !navigating;
+
+  useEffect(() => {
+    if (slugFormatError) {
+      setAvailability("idle");
+      setSuggestions([]);
+      setAvailabilityMessage(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setAvailability("checking");
+      void checkStoreSlugAvailability(storeSlug, controller.signal)
+        .then((result) => {
+          if (controller.signal.aborted) return;
+          setSuggestions(result.suggestions);
+          if (result.unchecked) {
+            setAvailability("unchecked");
+            setAvailabilityMessage(null);
+            return;
+          }
+          if (result.available) {
+            setAvailability("free");
+            setAvailabilityMessage(null);
+            return;
+          }
+          setAvailability("taken");
+          setAvailabilityMessage("Esse endereço já está em uso. Escolha uma sugestão ou outro slug.");
+        })
+        .catch((error: unknown) => {
+          if (controller.signal.aborted) return;
+          setAvailability("error");
+          setSuggestions([]);
+          setAvailabilityMessage(
+            error instanceof Error
+              ? error.message
+              : "Não foi possível verificar se esse endereço está livre."
+          );
+        });
+    }, 350);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [storeSlug, slugFormatError]);
 
   const onNameChange = (value: string) => {
     setStoreName(value);
@@ -51,7 +107,7 @@ export function SellerOnboardingStorePage() {
     setSubmitted(true);
     const nErr = getStoreNameError(storeName);
     const sErr = getStoreSlugError(storeSlug);
-    if (nErr || sErr) return;
+    if (nErr || sErr || (availability !== "free" && availability !== "unchecked")) return;
     saveOnboardingDraft({
       storeName: storeName.trim(),
       storeSlug: storeSlug.trim(),
@@ -99,14 +155,37 @@ export function SellerOnboardingStorePage() {
               spellCheck={false}
               placeholder="loja-do-joao"
               value={storeSlug}
-              error={slugError}
-              hint="recoll.com.br/loja/seu-slug (exemplo — URL final pode variar)."
+              error={slugFieldError}
+              hint={
+                availability === "checking"
+                  ? "Verificando se o endereço está livre…"
+                  : availability === "free"
+                    ? "Endereço disponível."
+                    : "O nome da loja preenche este campo até você editá-lo. Ele não altera o nome público."
+              }
               onChange={(event) => {
                 setSlugTouched(true);
-                setStoreSlug(event.target.value.toLowerCase());
+                setStoreSlug(event.target.value.toLowerCase().replace(/\s+/g, "-"));
               }}
               onBlur={() => setTouched((t) => ({ ...t, slug: true }))}
             />
+            {availability === "taken" && suggestions.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    className="rounded-full border border-accent/40 px-3 py-1 text-sm font-semibold text-accent hover:bg-accent/10"
+                    onClick={() => {
+                      setSlugTouched(true);
+                      setStoreSlug(suggestion);
+                    }}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </form>
         </OnboardingShell>
       </div>
