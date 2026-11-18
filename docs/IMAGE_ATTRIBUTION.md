@@ -9,7 +9,7 @@ Fotos via **[Pexels](https://www.pexels.com/license/)** — uso comercial, **sem
 | Seção | ID | Preview direto |
 |-------|-----|----------------|
 | Hero | `4065156` | https://images.pexels.com/photos/4065156/pexels-photo-4065156.jpeg?auto=compress&cs=tinysrgb&w=1400&dpr=2 |
-| Painel (“Catálogo, pedidos…”) | `5632401` | https://images.pexels.com/photos/5632401/pexels-photo-5632401.jpeg?auto=compress&cs=tinysrgb&w=1200&dpr=2 |
+| Painel (“Catálogo, pedidos…”) | arquivo local | `/landing/panel.jpg` (notebook com painel; Unsplash, uso livre) |
 | Operação | `7688336` | https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1200&dpr=2 |
 
 Variáveis: `VITE_LANDING_HERO_URL`, `VITE_LANDING_PLATFORM_URL`, `VITE_LANDING_WORK_URL`.
