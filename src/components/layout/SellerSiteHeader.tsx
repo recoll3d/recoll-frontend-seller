@@ -23,7 +23,7 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
           aria-label="Recoll"
         >
           <img src="/recoll-icon.svg" alt="" className="h-6 w-6" />
-          <img src="/recoll-wordmark.svg" alt="Recoll" className="h-4 w-auto min-[380px]:h-5" />
+          <img src="/recoll-wordmark.svg" alt="Recoll" className="h-3.5 w-auto" />
         </SellerNavLink>
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           {isAuthenticated ? (
