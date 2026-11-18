@@ -41,6 +41,7 @@ Backlog vivo: ideias e compromissos que surgem no chat. **Marcar `[x]` ao entreg
 
 - [ ] **Backend:** `POST` cadastro vendedor + status `pending_approval`.
 - [ ] **Verificar e-mail já existente** (usuário ou vendedor) na etapa conta.
+- [ ] **Login social (Google)** no cadastro/login vendedor — avaliar após conta e-mail/senha + backend OAuth (ML/Amazon costumam priorizar CPF/CNPJ e e-mail próprio).
 - [ ] **Validação CPF/CNPJ** (dígitos + formato; consulta Receita/KYB depois).
 - [ ] Persistir rascunho (sessionStorage → API depois).
 - [ ] “Salvar e sair” (retomar cadastro).

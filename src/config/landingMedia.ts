@@ -9,7 +9,7 @@ export const LANDING_HERO_IMAGE =
   import.meta.env.VITE_LANDING_HERO_URL?.trim() || pexels(4065156, 1400);
 
 export const LANDING_PLATFORM_IMAGE =
-  import.meta.env.VITE_LANDING_PLATFORM_URL?.trim() || pexels(6169665, 1200);
+  import.meta.env.VITE_LANDING_PLATFORM_URL?.trim() || pexels(3862139, 1200);
 
 export const LANDING_WORK_IMAGE =
   import.meta.env.VITE_LANDING_WORK_URL?.trim() || pexels(7688336, 1200);

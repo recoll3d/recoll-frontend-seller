@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   FaArrowRight,
   FaBoxOpen,
@@ -18,6 +19,7 @@ import {
   LANDING_PLATFORM_IMAGE,
   LANDING_WORK_IMAGE,
 } from "../config/landingMedia";
+import { clearOnboardingDraft } from "../utils/sellerOnboardingStorage";
 
 const STATS = [
   { value: "Brasil", label: "Cadastro focado no mercado local" },
@@ -81,14 +83,17 @@ const SOLUTIONS = [
 ];
 
 export function SellerLandingPage() {
+  useEffect(() => {
+    clearOnboardingDraft();
+  }, []);
+
   return (
     <div className="flex min-h-full flex-col bg-canvas text-title">
       <SellerSiteHeader />
 
       {/* Hero — foto real */}
-      <section className="seller-hero-grid w-full border-b border-edge py-14 sm:py-16 lg:py-0">
-        <div className="seller-site-x seller-hero-inner mx-auto">
-          <div className="seller-hero-copy">
+      <section className="seller-hero-grid w-full border-b border-edge">
+        <div className="seller-hero-copy seller-site-x py-14 sm:py-16 lg:py-20">
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Central do vendedor</p>
           <div className="mt-3 max-w-xl">
             <h1 className="font-primary text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
@@ -116,9 +121,9 @@ export function SellerLandingPage() {
               </li>
             </ul>
           </div>
-          </div>
+        </div>
 
-          <div className="seller-hero-photo-wrap pb-12 lg:pb-0 lg:pl-6 xl:pl-10">
+        <div className="seller-hero-photo-wrap px-4 pb-12 sm:px-6 lg:px-0 lg:pb-0">
           <img
             src={LANDING_HERO_IMAGE}
             alt=""
@@ -128,7 +133,6 @@ export function SellerLandingPage() {
             decoding="async"
             fetchPriority="high"
           />
-          </div>
         </div>
       </section>
 
@@ -306,7 +310,7 @@ function LandingPlatformSection() {
         <div className="seller-split-photo overflow-hidden rounded-2xl border border-edge">
           <img
             src={LANDING_PLATFORM_IMAGE}
-            alt="Vendedor organizando pacotes para envio"
+            alt="Pessoa gerenciando pedidos e catálogo no computador"
             className="h-full w-full object-cover"
             width={1200}
             height={800}

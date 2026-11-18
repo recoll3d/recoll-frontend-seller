@@ -1,3 +1,4 @@
+/** Rascunho do wizard — `sessionStorage` (não localStorage). Limpo ao visitar `/`. */
 const DRAFT_KEY = "recoll.seller.onboarding.draft";
 
 export type SellerBusinessType = "individual" | "company";
