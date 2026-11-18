@@ -36,8 +36,8 @@ Backlog vivo: ideias e compromissos que surgem no chat. **Marcar `[x]` ao entreg
 | Conta (e-mail, senha) | `/register/account` | [x] UI |
 | Loja (nome público, slug) | `/register/store` | [x] UI + checagem de slug único |
 | Endereço de envio | `/register/shipping` | [x] UI |
-| Documento (CPF ou CNPJ) | `/register/tax-id` | [ ] |
-| Revisão + enviar | `/register/review` | [ ] |
+| Documento (CPF ou CNPJ) | `/register/business-type` | [x] junto com o tipo |
+| Revisão + enviar | `/register/review` | [x] UI |
 
 - [ ] **Backend:** `POST` cadastro vendedor + status `pending_approval`.
 - [ ] **Verificar e-mail já existente** (usuário ou vendedor) na etapa conta.

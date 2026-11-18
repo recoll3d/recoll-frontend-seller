@@ -22,6 +22,7 @@ export type SellerOnboardingDraft = {
   shippingNeighborhood?: string;
   shippingCity?: string;
   shippingState?: string;
+  submittedAt?: string;
 };
 
 export const TERMS_VERSION = "2025-11-13";

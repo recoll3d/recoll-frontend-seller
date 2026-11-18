@@ -103,7 +103,7 @@ export function SellerOnboardingShippingPage() {
       shippingCity: city.trim(),
       shippingState: state,
     });
-    void navigateWithFeedback("/register/coming-soon");
+    void navigateWithFeedback("/register/review");
   };
 
   return (

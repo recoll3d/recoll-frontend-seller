@@ -10,6 +10,7 @@ import { SellerOnboardingTermsPage } from "./pages/SellerOnboardingTermsPage";
 import { SellerOnboardingBusinessTypePage } from "./pages/register/SellerOnboardingBusinessTypePage";
 import { SellerOnboardingAccountPage } from "./pages/register/SellerOnboardingAccountPage";
 import { SellerOnboardingCountryPage } from "./pages/register/SellerOnboardingCountryPage";
+import { SellerOnboardingReviewPage } from "./pages/register/SellerOnboardingReviewPage";
 import { SellerOnboardingShippingPage } from "./pages/register/SellerOnboardingShippingPage";
 import { SellerOnboardingStorePage } from "./pages/register/SellerOnboardingStorePage";
 import { ProductApprovalPolicyPage } from "./pages/legal/ProductApprovalPolicyPage";
@@ -62,10 +63,9 @@ export function AppRoutes() {
       <Route path="/register/account" element={<SellerOnboardingAccountPage />} />
       <Route path="/register/store" element={<SellerOnboardingStorePage />} />
       <Route path="/register/shipping" element={<SellerOnboardingShippingPage />} />
-      <Route
-        path="/register/coming-soon"
-        element={<SellerOnboardingPlaceholderPage />}
-      />
+      <Route path="/register/review" element={<SellerOnboardingReviewPage />} />
+      <Route path="/register/submitted" element={<SellerOnboardingPlaceholderPage />} />
+      <Route path="/register/coming-soon" element={<Navigate to="/register/review" replace />} />
       <Route
         path="/dashboard"
         element={
