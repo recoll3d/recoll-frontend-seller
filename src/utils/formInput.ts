@@ -15,3 +15,19 @@ export function getEmailFormatError(email: string): string | null {
   if (!EMAIL_REGEX.test(trimmed)) return "E-mail inválido.";
   return null;
 }
+
+const MIN_PASSWORD_LENGTH = 8;
+
+export function getPasswordError(password: string): string | null {
+  if (!password) return "Informe uma senha.";
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return `Use pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`;
+  }
+  return null;
+}
+
+export function getPasswordConfirmError(password: string, confirm: string): string | null {
+  if (!confirm) return "Confirme a senha.";
+  if (password !== confirm) return "As senhas não coincidem.";
+  return null;
+}

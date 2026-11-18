@@ -55,6 +55,14 @@
     @apply min-h-14 max-h-14 rounded-[9px] w-full outline-none px-6 text-title placeholder:text-text border border-edge;
     @apply font-medium text-sm sm:text-base bg-body;
   }
+  .select-input {
+    @apply appearance-none cursor-pointer;
+    padding-right: 3.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2305f283' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1.35rem center;
+    background-size: 1.1rem;
+  }
   .error-input {
     @apply border-[2px] border-text-red;
   }

@@ -148,10 +148,10 @@ export function SellerLandingPage() {
             <div className="max-w-2xl">
               <span className="inline-block h-1 w-10 rounded-full bg-accent" aria-hidden />
               <h2 id="benefits-heading" className="mt-4 font-primary text-3xl font-bold sm:text-4xl">
-                Vantagens para impulsionar sua loja
+                Recursos que apoiam a sua loja
               </h2>
               <p className="mt-3 text-base leading-7 text-text">
-                Ferramentas pensadas para você publicar, vender e entregar com o padrão de qualidade Recoll.
+                Do anúncio à entrega, cada parte do fluxo fala a mesma língua do comprador Recoll.
               </p>
             </div>
           </ScrollReveal>
@@ -195,7 +195,7 @@ export function SellerLandingPage() {
               Perguntas frequentes
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-center text-sm leading-6 text-text">
-              Respostas objetivas antes de você iniciar o cadastro.
+              Dúvidas sobre cadastro, frete e publicação — respostas diretas, sem enrolação.
             </p>
           </ScrollReveal>
           <ScrollReveal className="mt-10">
@@ -212,8 +212,7 @@ export function SellerLandingPage() {
               Pronto para abrir sua loja?
             </h2>
             <p className="mt-3 text-base leading-7 text-text">
-              Junte-se aos vendedores que estão construindo presença na Recoll. O cadastro leva poucos minutos para
-              começar.
+              Abra sua conta de vendedor na Recoll. O cadastro é guiado e costuma levar só alguns minutos.
             </p>
             <SellerNavLink
               to="/register/terms"
@@ -278,21 +277,21 @@ function LandingPlatformSection() {
         <div>
           <span className="inline-block h-1 w-10 rounded-full bg-accent" aria-hidden />
           <h2 id="platform-heading" className="mt-4 font-primary text-3xl font-bold sm:text-4xl">
-            Painel feito para o vendedor
+            Catálogo, pedidos e envio no mesmo lugar
           </h2>
           <p className="mt-3 text-base leading-7 text-text">
-            Visual limpo, foco em pedidos e catálogo. A ilustração ao lado resume o fluxo: anúncio aprovado, compra
-            confirmada e entrega acompanhada.
+            O painel concentra o que muda no dia a dia: anúncios em revisão, vendas novas e atualização de entrega — sem
+            pular entre ferramentas diferentes.
           </p>
           <ul className="mt-6 space-y-3 text-sm text-text">
             <li className="flex gap-2">
-              <span className="text-accent">✓</span> Status de moderação visível antes da publicação
+              <span className="text-accent">✓</span> Saiba se o anúncio está aguardando aprovação ou já está no ar
             </li>
             <li className="flex gap-2">
-              <span className="text-accent">✓</span> Integração com a experiência do comprador Recoll
+              <span className="text-accent">✓</span> Mesma identidade visual que o comprador vê na Recoll
             </li>
             <li className="flex gap-2">
-              <span className="text-accent">✓</span> Novas funções liberadas conforme o roadmap do app
+              <span className="text-accent">✓</span> Histórico de pedidos e dados da loja acessíveis quando precisar
             </li>
           </ul>
         </div>

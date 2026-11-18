@@ -11,6 +11,7 @@ type RegisterOnboardingGuardProps = {
   requireTerms?: boolean;
   requireCountry?: boolean;
   requireBusinessType?: boolean;
+  requireAccount?: boolean;
 };
 
 export function RegisterOnboardingGuard({
@@ -18,6 +19,7 @@ export function RegisterOnboardingGuard({
   requireTerms = true,
   requireCountry = false,
   requireBusinessType = false,
+  requireAccount = false,
 }: RegisterOnboardingGuardProps) {
   const d = loadOnboardingDraft();
 
@@ -29,6 +31,9 @@ export function RegisterOnboardingGuard({
   }
   if (requireBusinessType && (!d.businessType || !d.taxDocument)) {
     return <Navigate to="/register/business-type" replace />;
+  }
+  if (requireAccount && !d.accountEmail) {
+    return <Navigate to="/register/account" replace />;
   }
 
   return children;

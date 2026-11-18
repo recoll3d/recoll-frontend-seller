@@ -16,14 +16,14 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
         compact ? "py-3" : "py-4"
       }`}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <SellerNavLink to="/" className="flex items-center gap-2.5 text-title">
+      <div className="mx-auto flex w-full items-center justify-between gap-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24">
+        <SellerNavLink to="/" className="-ml-0.5 flex shrink-0 items-center gap-2.5 text-title lg:-ml-1">
           <img src="/recoll-icon.svg" alt="" width={36} height={36} className="rounded-full" />
           <span className="font-primary text-xl font-bold tracking-tight sm:text-2xl">
             Recoll <span className="text-accent">Vender</span>
           </span>
         </SellerNavLink>
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {isAuthenticated ? (
             <>
               <button
@@ -46,16 +46,10 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
             </>
           ) : (
             <>
-              <SellerNavLink
-                to="/login"
-                className="hidden text-sm font-semibold text-outline hover:text-title sm:inline"
-              >
+              <SellerNavLink to="/login" className="button button-outline hidden min-h-12 px-8 sm:inline-flex">
                 Entrar
               </SellerNavLink>
-              <SellerNavLink
-                to="/register/terms"
-                className="button button-accent min-h-10 px-5 text-sm"
-              >
+              <SellerNavLink to="/register/terms" className="button button-accent min-h-12 px-10">
                 Começar a vender
               </SellerNavLink>
             </>

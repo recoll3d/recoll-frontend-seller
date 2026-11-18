@@ -9,6 +9,8 @@ export type SellerOnboardingDraft = {
   businessType?: SellerBusinessType;
   /** Apenas dígitos — CPF (11) ou CNPJ (14) */
   taxDocument?: string;
+  /** E-mail da conta (senha não é salva no rascunho). */
+  accountEmail?: string;
 };
 
 export const TERMS_VERSION = "2025-11-13";

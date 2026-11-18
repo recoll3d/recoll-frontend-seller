@@ -33,7 +33,7 @@ Backlog vivo: ideias e compromissos que surgem no chat. **Marcar `[x]` ao entreg
 | Termos + “vender na Recoll” | `/register/terms` | [x] UI |
 | País (só Brasil) | `/register/country` | [x] UI |
 | PF vs empresa (CNPJ) | `/register/business-type` | [x] UI |
-| Conta (e-mail, senha) | `/register/account` | [ ] |
+| Conta (e-mail, senha) | `/register/account` | [x] UI |
 | Loja (nome público, slug) | `/register/store` | [ ] |
 | Endereço de envio | `/register/shipping` | [ ] |
 | Documento (CPF ou CNPJ) | `/register/tax-id` | [ ] |

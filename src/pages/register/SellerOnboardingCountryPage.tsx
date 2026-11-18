@@ -50,7 +50,7 @@ export function SellerOnboardingCountryPage() {
               </label>
               <select
                 id="seller-country"
-                className="input cursor-pointer"
+                className="input select-input"
                 value={country}
                 onChange={(event) => setCountry(event.target.value as "BR" | "")}
               >

@@ -1,3 +1,4 @@
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useId, useState } from "react";
 import { FaChevronDown } from "react-icons/fa6";
 
@@ -5,26 +6,27 @@ type FaqItem = { q: string; a: string };
 
 const ITEMS: FaqItem[] = [
   {
-    q: "Quem pode vender na Recoll?",
-    a: "Vendedores no Brasil, pessoa física ou jurídica, que aceitam os termos da plataforma e passam pelo cadastro guiado.",
+    q: "Quem pode abrir loja na Recoll?",
+    a: "Operações no Brasil, como pessoa física ou empresa, desde que aceitem os termos do vendedor e concluam o cadastro.",
   },
   {
-    q: "Preciso pagar para anunciar?",
-    a: "O cadastro e a publicação de anúncios seguem as regras vigentes da Recoll. Taxas e comissões, quando aplicáveis, aparecem nos termos e no painel antes de você confirmar.",
+    q: "Há custo para criar anúncios?",
+    a: "As condições de taxas e comissões ficam nos termos oficiais. Quando houver cobrança, ela é informada antes de você confirmar qualquer ação na conta.",
   },
   {
-    q: "Como funcionam envios e frete?",
-    a: "O comprador vê opções de frete no checkout. Você prepara e despacha o pedido conforme o método escolhido e atualiza o status no painel do vendedor.",
+    q: "Como o frete entra na venda?",
+    a: "Quem compra escolhe a modalidade e vê o valor no checkout. Depois da venda, você separa o pedido, envia e registra o andamento no painel.",
   },
   {
-    q: "Quando meu produto aparece na loja?",
-    a: "Anúncios passam por revisão para manter qualidade e segurança. Após aprovação, ficam visíveis para quem compra no marketplace.",
+    q: "Por que meu anúncio pode demorar a aparecer?",
+    a: "Cada produto é conferido pela equipe Recoll para manter padrão e segurança. Só depois da aprovação ele fica visível no marketplace.",
   },
 ];
 
 export function LandingFaq() {
   const baseId = useId();
   const [open, setOpen] = useState<number | null>(0);
+  const reduceMotion = useReducedMotion();
 
   return (
     <div className="divide-y divide-edge rounded-2xl border border-edge bg-surface/60">
@@ -45,20 +47,30 @@ export function LandingFaq() {
               >
                 <span className="font-primary text-sm font-semibold text-title sm:text-base">{item.q}</span>
                 <FaChevronDown
-                  className={`shrink-0 text-accent transition-transform ${expanded ? "rotate-180" : ""}`}
+                  className={`shrink-0 text-accent transition-transform duration-300 ${
+                    expanded ? "rotate-180" : ""
+                  }`}
                   aria-hidden
                 />
               </button>
             </h3>
-            <div
-              id={panelId}
-              role="region"
-              aria-labelledby={btnId}
-              hidden={!expanded}
-              className="px-5 pb-4 text-sm leading-6 text-text"
-            >
-              {item.a}
-            </div>
+            <AnimatePresence initial={false}>
+              {expanded ? (
+                <motion.div
+                  id={panelId}
+                  role="region"
+                  aria-labelledby={btnId}
+                  key="panel"
+                  initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  className="overflow-hidden"
+                >
+                  <p className="px-5 pb-4 text-sm leading-6 text-text">{item.a}</p>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </div>
         );
       })}

@@ -85,7 +85,7 @@ export function SellerOnboardingBusinessTypePage() {
       businessType,
       taxDocument: digitsOnly(taxDocument),
     });
-    void navigateWithFeedback("/register/coming-soon");
+    void navigateWithFeedback("/register/account");
   };
 
   return (
