@@ -18,7 +18,7 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
     >
       <div className="seller-site-x mx-auto flex w-full items-center justify-between gap-4">
         <SellerNavLink to="/" className="-ml-0.5 flex shrink-0 items-center lg:-ml-1" aria-label="Recoll">
-          <img src="/recoll-logo.svg" alt="Recoll" className="h-8 w-auto sm:h-9" />
+          <img src="/recoll-logo.svg" alt="Recoll" className="h-6 w-auto" />
         </SellerNavLink>
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {isAuthenticated ? (
