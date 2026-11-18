@@ -27,7 +27,7 @@ export function RegisterOnboardingGuard({
   if (requireCountry && d.country !== "BR") {
     return <Navigate to="/register/country" replace />;
   }
-  if (requireBusinessType && !d.businessType) {
+  if (requireBusinessType && (!d.businessType || !d.taxDocument)) {
     return <Navigate to="/register/business-type" replace />;
   }
 

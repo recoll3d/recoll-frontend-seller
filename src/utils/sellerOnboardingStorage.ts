@@ -7,6 +7,8 @@ export type SellerOnboardingDraft = {
   termsVersion: string;
   country?: "BR";
   businessType?: SellerBusinessType;
+  /** Apenas dígitos — CPF (11) ou CNPJ (14) */
+  taxDocument?: string;
 };
 
 export const TERMS_VERSION = "2025-11-13";

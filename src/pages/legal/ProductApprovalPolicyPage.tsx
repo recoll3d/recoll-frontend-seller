@@ -1,16 +1,14 @@
-import { Link } from "react-router-dom";
-
 import { SellerSiteHeader } from "../../components/layout/SellerSiteHeader";
+import { SellerSiteFooter } from "../../components/layout/SellerSiteFooter";
 
 export function ProductApprovalPolicyPage() {
   return (
-    <div className="min-h-full bg-canvas text-title">
+    <div className="flex min-h-full flex-col bg-canvas text-title">
       <SellerSiteHeader compact />
-      <main className="page-content mx-auto max-w-3xl">
+      <main className="page-content mx-auto w-full max-w-3xl flex-1">
         <h1 className="page-title">Política de aprovação de produtos</h1>
         <p className="mt-4 text-sm leading-7 text-text">
-          Esta política descreve como a Recoll analisa anúncios enviados por vendedores antes de
-          exibi-los aos compradores no marketplace.
+          Como a Recoll analisa anúncios de vendedores antes de exibi-los aos compradores.
         </p>
 
         <section className="surface-card mt-8 space-y-4 p-6 text-sm leading-7 text-text">
@@ -53,13 +51,8 @@ export function ProductApprovalPolicyPage() {
             alterações relevantes serão comunicadas aos vendedores.
           </p>
         </section>
-
-        <p className="mt-8 text-center text-sm text-text">
-          <Link to="/" className="font-semibold text-accent hover:underline">
-            Voltar ao início
-          </Link>
-        </p>
       </main>
+      <SellerSiteFooter />
     </div>
   );
 }
