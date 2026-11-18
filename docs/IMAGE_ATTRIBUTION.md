@@ -9,7 +9,7 @@ Fotos via **[Pexels](https://www.pexels.com/license/)** — uso comercial, **sem
 | Seção | ID | Preview direto |
 |-------|-----|----------------|
 | Hero | `4065156` | https://images.pexels.com/photos/4065156/pexels-photo-4065156.jpeg?auto=compress&cs=tinysrgb&w=1400&dpr=2 |
-| Painel (“Catálogo, pedidos…”) | `3862139` | https://images.pexels.com/photos/3862139/pexels-photo-3862139.jpeg?auto=compress&cs=tinysrgb&w=1200&dpr=2 |
+| Painel (“Catálogo, pedidos…”) | `5632401` | https://images.pexels.com/photos/5632401/pexels-photo-5632401.jpeg?auto=compress&cs=tinysrgb&w=1200&dpr=2 |
 | Operação | `7688336` | https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1200&dpr=2 |
 
 Variáveis: `VITE_LANDING_HERO_URL`, `VITE_LANDING_PLATFORM_URL`, `VITE_LANDING_WORK_URL`.
@@ -32,7 +32,7 @@ Variáveis: `VITE_LANDING_HERO_URL`, `VITE_LANDING_PLATFORM_URL`, `VITE_LANDING_
 
 | ID | Página Pexels |
 |----|---------------|
-| `3862139` | https://www.pexels.com/photo/person-using-laptop-computer-3862139/ |
+| `5632401` | https://www.pexels.com/photo/woman-in-blue-long-sleeve-shirt-using-laptop-computer-5632401/ |
 | `5632401` | https://www.pexels.com/photo/woman-in-blue-long-sleeve-shirt-using-laptop-computer-5632401/ |
 | `6476587` | https://www.pexels.com/photo/woman-sitting-on-chair-with-her-laptop-6476587/ |
 | `590022` | https://www.pexels.com/photo/apple-devices-macbook-computer-ipad-590022/ |

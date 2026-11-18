@@ -14,14 +14,14 @@ export function SellerOnboardingPlaceholderPage() {
         : "—";
 
   return (
-    <RegisterOnboardingGuard requireTerms requireCountry requireBusinessType requireAccount>
+    <RegisterOnboardingGuard requireTerms requireCountry requireBusinessType requireAccount requireStore>
       <div className="min-h-full bg-canvas">
         <SellerSiteHeader compact />
         <OnboardingShell
-          progressPercent={55}
+          progressPercent={72}
           title="Próximas etapas do cadastro"
-          description={`Tipo escolhido: ${typeLabel}. Em breve: nome da loja, endereço de envio e revisão final. Conta (${draft.accountEmail ?? "—"}) já está no rascunho deste navegador.`}
-          backTo="/register/account"
+          description={`Loja: ${draft.storeName ?? "—"} (${draft.storeSlug ?? "—"}). Em breve: endereço de envio, revisão e envio para aprovação. Conta: ${draft.accountEmail ?? "—"}.`}
+          backTo="/register/store"
           footer={
             <SellerNavLink to="/" className="button button-outline w-full sm:w-auto">
               Voltar ao início

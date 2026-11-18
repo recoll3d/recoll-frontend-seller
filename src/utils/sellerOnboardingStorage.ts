@@ -12,6 +12,8 @@ export type SellerOnboardingDraft = {
   taxDocument?: string;
   /** E-mail da conta (senha não é salva no rascunho). */
   accountEmail?: string;
+  storeName?: string;
+  storeSlug?: string;
 };
 
 export const TERMS_VERSION = "2025-11-13";

@@ -55,6 +55,12 @@
     @apply min-h-14 max-h-14 rounded-[9px] w-full outline-none px-6 text-title placeholder:text-text border border-edge;
     @apply font-medium text-sm sm:text-base bg-body;
   }
+  .input-password {
+    @apply pr-14;
+  }
+  .input-password-toggle {
+    @apply absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-text transition hover:bg-white/5 hover:text-title;
+  }
   .select-input {
     @apply appearance-none cursor-pointer;
     padding-right: 3.25rem;
@@ -113,17 +119,17 @@
     animation: seller-nav-spin 1.15s linear infinite;
   }
   .seller-hero-grid {
-    @apply flex flex-col lg:flex-row lg:items-stretch;
+    @apply flex flex-col lg:flex-row lg:items-center;
     background: linear-gradient(165deg, #0f1520 0%, #0b1018 55%, #121a26 100%);
   }
   .seller-hero-copy {
-    @apply flex flex-col justify-center lg:max-w-[42rem];
+    @apply flex flex-col justify-center lg:max-w-[42rem] lg:flex-1 lg:self-center;
   }
   .seller-hero-photo-wrap {
-    @apply flex min-h-[360px] flex-1 items-stretch sm:min-h-[400px] lg:min-h-[520px] lg:min-w-0;
+    @apply flex min-h-[280px] flex-1 items-center sm:min-h-[320px] lg:min-h-0 lg:max-h-[min(440px,72vh)] lg:min-w-0;
   }
   .seller-hero-photo {
-    @apply h-full min-h-[360px] w-full object-cover sm:min-h-[400px] lg:min-h-[520px];
+    @apply h-full max-h-[min(440px,72vh)] min-h-[260px] w-full object-cover sm:min-h-[300px];
     border-radius: 1.25rem 0 0 1.25rem;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
     mask-image: linear-gradient(to left, black 82%, transparent 100%);

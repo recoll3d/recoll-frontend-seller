@@ -1,5 +1,6 @@
 import { type FormEvent, useMemo, useState } from "react";
 
+import { FormPasswordField } from "../../components/forms/FormPasswordField";
 import { FormTextField } from "../../components/forms/FormTextField";
 import { OnboardingShell } from "../../components/onboarding/OnboardingShell";
 import { RegisterOnboardingGuard } from "../../components/onboarding/RegisterOnboardingGuard";
@@ -53,7 +54,7 @@ export function SellerOnboardingAccountPage() {
     const cErr = getPasswordConfirmError(password, confirmPassword);
     if (eErr || pErr || cErr) return;
     saveOnboardingDraft({ accountEmail: email.trim().toLowerCase() });
-    void navigateWithFeedback("/register/coming-soon");
+    void navigateWithFeedback("/register/store");
   };
 
   return (
@@ -91,10 +92,9 @@ export function SellerOnboardingAccountPage() {
               onChange={(event) => setEmail(event.target.value)}
               onBlur={() => setTouched((t) => ({ ...t, email: true }))}
             />
-            <FormTextField
+            <FormPasswordField
               id="seller-account-password"
               label="Senha"
-              type="password"
               autoComplete="new-password"
               placeholder="Mínimo 8 caracteres"
               value={password}
@@ -102,10 +102,9 @@ export function SellerOnboardingAccountPage() {
               onChange={(event) => setPassword(event.target.value)}
               onBlur={() => setTouched((t) => ({ ...t, password: true }))}
             />
-            <FormTextField
+            <FormPasswordField
               id="seller-account-password-confirm"
               label="Confirmar senha"
-              type="password"
               autoComplete="new-password"
               value={confirmPassword}
               error={confirmError}

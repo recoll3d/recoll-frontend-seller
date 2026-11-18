@@ -10,6 +10,7 @@ import { SellerOnboardingTermsPage } from "./pages/SellerOnboardingTermsPage";
 import { SellerOnboardingBusinessTypePage } from "./pages/register/SellerOnboardingBusinessTypePage";
 import { SellerOnboardingAccountPage } from "./pages/register/SellerOnboardingAccountPage";
 import { SellerOnboardingCountryPage } from "./pages/register/SellerOnboardingCountryPage";
+import { SellerOnboardingStorePage } from "./pages/register/SellerOnboardingStorePage";
 import { ProductApprovalPolicyPage } from "./pages/legal/ProductApprovalPolicyPage";
 
 function SellerHomeRoute() {
@@ -58,6 +59,7 @@ export function AppRoutes() {
       <Route path="/register/country" element={<SellerOnboardingCountryPage />} />
       <Route path="/register/business-type" element={<SellerOnboardingBusinessTypePage />} />
       <Route path="/register/account" element={<SellerOnboardingAccountPage />} />
+      <Route path="/register/store" element={<SellerOnboardingStorePage />} />
       <Route
         path="/register/coming-soon"
         element={<SellerOnboardingPlaceholderPage />}

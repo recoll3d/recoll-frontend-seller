@@ -12,6 +12,7 @@ type RegisterOnboardingGuardProps = {
   requireCountry?: boolean;
   requireBusinessType?: boolean;
   requireAccount?: boolean;
+  requireStore?: boolean;
 };
 
 export function RegisterOnboardingGuard({
@@ -20,6 +21,7 @@ export function RegisterOnboardingGuard({
   requireCountry = false,
   requireBusinessType = false,
   requireAccount = false,
+  requireStore = false,
 }: RegisterOnboardingGuardProps) {
   const d = loadOnboardingDraft();
 
@@ -34,6 +36,9 @@ export function RegisterOnboardingGuard({
   }
   if (requireAccount && !d.accountEmail) {
     return <Navigate to="/register/account" replace />;
+  }
+  if (requireStore && (!d.storeName || !d.storeSlug)) {
+    return <Navigate to="/register/store" replace />;
   }
 
   return children;

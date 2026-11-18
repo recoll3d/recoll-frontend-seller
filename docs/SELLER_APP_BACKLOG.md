@@ -34,7 +34,7 @@ Backlog vivo: ideias e compromissos que surgem no chat. **Marcar `[x]` ao entreg
 | País (só Brasil) | `/register/country` | [x] UI |
 | PF vs empresa (CNPJ) | `/register/business-type` | [x] UI |
 | Conta (e-mail, senha) | `/register/account` | [x] UI |
-| Loja (nome público, slug) | `/register/store` | [ ] |
+| Loja (nome público, slug) | `/register/store` | [x] UI |
 | Endereço de envio | `/register/shipping` | [ ] |
 | Documento (CPF ou CNPJ) | `/register/tax-id` | [ ] |
 | Revisão + enviar | `/register/review` | [ ] |
