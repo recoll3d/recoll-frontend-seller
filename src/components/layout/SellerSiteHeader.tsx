@@ -27,25 +27,16 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
         </SellerNavLink>
         <div className="flex shrink-0 items-center gap-3 sm:gap-4">
           {isAuthenticated ? (
-            <>
-              <button
-                type="button"
-                className="button button-outline hidden min-h-10 px-5 text-sm sm:inline-flex"
-                onClick={() => void navigateWithFeedback("/dashboard")}
-              >
-                Painel
-              </button>
-              <button
-                type="button"
-                className="button button-outline min-h-10 px-5 text-sm"
-                onClick={() => {
-                  signOut();
-                  void navigateWithFeedback("/");
-                }}
-              >
-                Sair
-              </button>
-            </>
+            <button
+              type="button"
+              className="button button-outline min-h-10 px-5 text-sm"
+              onClick={() => {
+                signOut();
+                void navigateWithFeedback("/");
+              }}
+            >
+              Sair
+            </button>
           ) : (
             <>
               <SellerNavLink

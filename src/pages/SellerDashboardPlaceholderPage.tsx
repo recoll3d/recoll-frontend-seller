@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { SellerSiteHeader } from "../components/layout/SellerSiteHeader";
 import { useSellerAuth } from "../contexts/SellerAuthContext";
@@ -6,16 +6,16 @@ import { fetchSellerAccount, type SellerAccount } from "../services/sellerAccoun
 
 type PanelSection = "home" | "store" | "products" | "orders";
 
-const SECTIONS: { id: PanelSection; label: string; hint: string }[] = [
-  { id: "home", label: "Início", hint: "Visão da loja" },
-  { id: "store", label: "Sua loja", hint: "Nome e endereço" },
-  { id: "products", label: "Produtos", hint: "Depois da aprovação" },
-  { id: "orders", label: "Pedidos", hint: "Vendas da loja" },
+const SECTIONS: { id: PanelSection; label: string; icon: ReactNode }[] = [
+  { id: "home", label: "Início", icon: <HomeIcon /> },
+  { id: "store", label: "Loja", icon: <StoreIcon /> },
+  { id: "products", label: "Produtos", icon: <BoxIcon /> },
+  { id: "orders", label: "Pedidos", icon: <OrdersIcon /> },
 ];
 
 const STATUS_LABEL: Record<string, string> = {
   pending_approval: "Aguardando aprovação",
-  active: "Ativa",
+  active: "No ar",
   suspended: "Suspensa",
 };
 
@@ -62,57 +62,99 @@ export function SellerDashboardPlaceholderPage() {
   const storeName = account?.storeName || "Sua loja";
   const storeSlug = account?.storeSlug;
   const email = account?.email || session?.email;
+  const pending = status !== "active";
 
   return (
-    <div className="min-h-full bg-canvas">
+    <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
       <SellerSiteHeader />
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:items-start lg:py-8">
-        <aside className="w-full shrink-0 lg:sticky lg:top-24 lg:w-64">
-          <div className="surface-card p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-accent">Guia da loja</p>
-            <p className="mt-2 text-sm text-text">Conta enviada. A análise da loja está em andamento.</p>
-            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-body">
-              <div className="progress-bar-fill h-full w-1/2" />
-            </div>
-            <nav className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-1">
-              {SECTIONS.map((item) => {
-                const selected = section === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setSection(item.id)}
-                    className={`rounded-[10px] px-3 py-2 text-left ${
-                      selected ? "bg-accent/10 text-title" : "text-text hover:bg-white/5"
-                    }`}
-                  >
-                    <span className="block text-sm font-semibold">{item.label}</span>
-                    <span className="mt-0.5 block text-xs opacity-80">{item.hint}</span>
-                  </button>
-                );
-              })}
-            </nav>
+      <div className="flex min-h-0 flex-1">
+        <aside className="hidden w-56 shrink-0 flex-col border-r border-edge/70 lg:flex">
+          <div className="px-5 pb-2 pt-6">
+            <p className="truncate font-primary text-xl font-bold text-title">{storeName}</p>
+            <p className="mt-1 text-xs text-text">{STATUS_LABEL[status] ?? status}</p>
           </div>
+          <nav className="mt-4 flex flex-col px-3">
+            {SECTIONS.map((item) => (
+              <NavButton
+                key={item.id}
+                item={item}
+                selected={section === item.id}
+                onSelect={setSection}
+              />
+            ))}
+          </nav>
         </aside>
 
-        <main className="min-w-0 flex-1">
-          {section === "home" ? (
-            <HomeSection
-              storeName={storeName}
-              email={email}
-              storeSlug={storeSlug}
-              status={status}
-              onOpenProducts={() => setSection("products")}
-            />
-          ) : null}
-          {section === "store" ? (
-            <StoreSection storeName={storeName} email={email} storeSlug={storeSlug} status={status} />
-          ) : null}
-          {section === "products" ? <ProductsSection pending={status !== "active"} /> : null}
-          {section === "orders" ? <OrdersSection /> : null}
-        </main>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-edge/70 px-2 lg:hidden">
+            {SECTIONS.map((item) => {
+              const selected = section === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-current={selected ? "page" : undefined}
+                  onClick={() => setSection(item.id)}
+                  className={`shrink-0 border-b-2 px-3 py-3 text-sm font-semibold ${
+                    selected ? "border-accent text-title" : "border-transparent text-text"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          <main className="min-h-0 flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8 sm:py-10">
+              {section === "home" ? (
+                <HomeSection
+                  storeName={storeName}
+                  email={email}
+                  storeSlug={storeSlug}
+                  status={status}
+                  onOpenProducts={() => setSection("products")}
+                />
+              ) : null}
+              {section === "store" ? (
+                <StoreSection
+                  storeName={storeName}
+                  email={email}
+                  storeSlug={storeSlug}
+                  status={status}
+                />
+              ) : null}
+              {section === "products" ? <ProductsSection pending={pending} /> : null}
+              {section === "orders" ? <OrdersSection /> : null}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
+  );
+}
+
+function NavButton({
+  item,
+  selected,
+  onSelect,
+}: {
+  item: (typeof SECTIONS)[number];
+  selected: boolean;
+  onSelect: (id: PanelSection) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-current={selected ? "page" : undefined}
+      onClick={() => onSelect(item.id)}
+      className={`flex items-center gap-3 border-l-2 px-3 py-2.5 text-left text-sm font-semibold ${
+        selected ? "border-accent text-title" : "border-transparent text-text hover:text-title"
+      }`}
+    >
+      <span className={selected ? "text-accent" : "text-text"}>{item.icon}</span>
+      {item.label}
+    </button>
   );
 }
 
@@ -129,54 +171,55 @@ function HomeSection({
   status: string;
   onOpenProducts: () => void;
 }) {
+  const live = status === "active";
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">Painel</p>
-        <h1 className="mt-2 font-primary text-3xl font-bold text-title sm:text-4xl">{storeName}</h1>
-        <p className="mt-2 text-sm text-text sm:text-base">
-          {email}
-          {storeSlug ? ` · recoll.com.br/store/${storeSlug}` : ""}
-        </p>
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-primary text-4xl font-bold leading-none text-title sm:text-5xl">
+            {storeName}
+          </h1>
+          <p className="mt-3 text-sm text-text sm:text-base">
+            {email}
+            {storeSlug ? ` · recoll.com.br/store/${storeSlug}` : ""}
+          </p>
+        </div>
+        <p className="text-sm font-semibold text-accent">{STATUS_LABEL[status] ?? status}</p>
       </div>
 
-      <section className="surface-card p-5 sm:p-6">
-        <p className="text-sm font-semibold text-title">{STATUS_LABEL[status] ?? status}</p>
-        <p className="mt-2 text-sm leading-6 text-text">
-          {status === "pending_approval"
-            ? "Recebemos o cadastro. A loja fica oculta para quem compra até a equipe concluir a análise."
-            : status === "active"
-              ? "A loja está ativa."
-              : "Esta loja não pode publicar anúncios no momento."}
-        </p>
-      </section>
+      <p className="mt-6 max-w-2xl text-sm leading-6 text-text sm:text-base">
+        {status === "pending_approval"
+          ? "Recebemos o cadastro. A vitrine continua oculta para quem compra até a análise terminar."
+          : live
+            ? "A loja está no ar. Anúncios aprovados aparecem para quem compra."
+            : "Esta loja não pode publicar anúncios no momento."}
+      </p>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="surface-card p-5 sm:p-6">
-          <h2 className="font-primary text-xl font-bold text-title">O que esperar</h2>
-          <ol className="mt-4 space-y-4">
-            <Step n={1} title="Dados recebidos" done>
-              Conta, nome da loja e endereço de envio já estão com a Recoll.
-            </Step>
-            <Step n={2} title="Análise da loja" current>
-              A equipe confere o cadastro antes de liberar a vitrine.
-            </Step>
-            <Step n={3} title="Loja no ar">
-              Com a aprovação, os anúncios podem aparecer para o comprador.
-            </Step>
-          </ol>
-        </section>
-        <section className="surface-card p-5 sm:p-6">
-          <h2 className="font-primary text-xl font-bold text-title">Enquanto a análise corre</h2>
-          <ul className="mt-4 space-y-3 text-sm leading-6 text-text">
-            <li>Separe fotos e a descrição do primeiro produto.</li>
-            <li>O endereço público da loja já está reservado.</li>
-            <li>Pedidos só entram depois que houver uma venda.</li>
-          </ul>
-          <button type="button" className="button button-accent mt-6" onClick={onOpenProducts}>
-            Ver produtos
-          </button>
-        </section>
+      <div className="mt-10 grid grid-cols-3 gap-4 border-y border-edge/70 py-6">
+        <Metric value="0" label="Produtos" />
+        <Metric value="0" label="Pedidos" />
+        <Metric value={live ? "No ar" : "Oculta"} label="Vitrine" />
+      </div>
+
+      <ol className="mt-10 grid gap-8 md:grid-cols-3">
+        <Step title="Dados recebidos" done>
+          Conta, nome da loja e endereço de envio já estão com a Recoll.
+        </Step>
+        <Step title="Análise da loja" current={!live}>
+          A equipe confere o cadastro antes de liberar a vitrine.
+        </Step>
+        <Step title="Loja no ar" done={live}>
+          Com a aprovação, os anúncios podem aparecer para o comprador.
+        </Step>
+      </ol>
+
+      <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-edge/70 pt-8">
+        <p className="max-w-md text-sm leading-6 text-text">
+          Separe fotos e a descrição do primeiro produto. A publicação abre depois da aprovação.
+        </p>
+        <button type="button" className="button button-accent" onClick={onOpenProducts}>
+          Ver produtos
+        </button>
       </div>
     </div>
   );
@@ -194,83 +237,126 @@ function StoreSection({
   status: string;
 }) {
   return (
-    <section className="surface-card p-5 sm:p-6">
-      <h1 className="font-primary text-3xl font-bold text-title">Sua loja</h1>
-      <dl className="mt-6 space-y-4 text-sm">
+    <div>
+      <h1 className="font-primary text-4xl font-bold text-title">Loja</h1>
+      <dl className="mt-8 divide-y divide-edge/70 border-y border-edge/70">
         <Info label="Nome público" value={storeName} />
         <Info label="Endereço" value={storeSlug ? `recoll.com.br/store/${storeSlug}` : "—"} />
         <Info label="E-mail da conta" value={email || "—"} />
         <Info label="Situação" value={STATUS_LABEL[status] ?? status} />
       </dl>
-    </section>
+    </div>
   );
 }
 
 function ProductsSection({ pending }: { pending: boolean }) {
   return (
-    <section className="surface-card p-5 sm:p-6">
-      <h1 className="font-primary text-3xl font-bold text-title">Produtos</h1>
-      <p className="mt-3 max-w-xl text-sm leading-6 text-text">
+    <div>
+      <h1 className="font-primary text-4xl font-bold text-title">Produtos</h1>
+      <p className="mt-3 max-w-xl text-sm leading-6 text-text sm:text-base">
         {pending
           ? "O primeiro anúncio fica disponível quando a loja for aprovada. Até lá, nada é publicado para quem compra."
           : "Quando houver anúncios, eles aparecem nesta lista."}
       </p>
-      <div className="mt-6 rounded-[12px] border border-dashed border-edge px-4 py-10 text-center text-sm text-text">
-        Nenhum produto nesta loja.
-      </div>
-    </section>
+      <EmptyState value="0" label="Nenhum produto nesta loja." />
+    </div>
   );
 }
 
 function OrdersSection() {
   return (
-    <section className="surface-card p-5 sm:p-6">
-      <h1 className="font-primary text-3xl font-bold text-title">Pedidos</h1>
-      <p className="mt-3 max-w-xl text-sm leading-6 text-text">
+    <div>
+      <h1 className="font-primary text-4xl font-bold text-title">Pedidos</h1>
+      <p className="mt-3 max-w-xl text-sm leading-6 text-text sm:text-base">
         As vendas da loja aparecem aqui, com o status de cada pedido.
       </p>
-      <div className="mt-6 rounded-[12px] border border-dashed border-edge px-4 py-10 text-center text-sm text-text">
-        Nenhum pedido ainda.
-      </div>
-    </section>
+      <EmptyState value="0" label="Nenhum pedido ainda." />
+    </div>
+  );
+}
+
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate font-primary text-3xl font-bold text-title sm:text-4xl">{value}</p>
+      <p className="mt-1 text-sm text-text">{label}</p>
+    </div>
   );
 }
 
 function Step({
-  n,
   title,
   children,
   done,
   current,
 }: {
-  n: number;
   title: string;
   children: string;
   done?: boolean;
   current?: boolean;
 }) {
   return (
-    <li className="flex gap-3">
+    <li>
       <span
-        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-          done || current ? "bg-accent text-canvas" : "bg-body text-text"
-        }`}
-      >
-        {n}
-      </span>
-      <div>
-        <p className="text-sm font-semibold text-title">{title}</p>
-        <p className="mt-1 text-sm leading-6 text-text">{children}</p>
-      </div>
+        className={`mb-4 block h-0.5 w-12 ${done || current ? "bg-accent" : "bg-edge"}`}
+        aria-hidden
+      />
+      <p className="text-sm font-semibold text-title">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-text">{children}</p>
     </li>
   );
 }
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <dt className="text-text">{label}</dt>
-      <dd className="mt-1 font-semibold text-title">{value}</dd>
+    <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
+      <dt className="text-sm text-text">{label}</dt>
+      <dd className="text-sm font-semibold text-title sm:text-right">{value}</dd>
     </div>
+  );
+}
+
+function EmptyState({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="mt-16">
+      <p className="font-primary text-6xl font-bold text-title opacity-25">{value}</p>
+      <p className="mt-3 text-sm text-text">{label}</p>
+    </div>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function StoreIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4 9.5 6 4h12l2 5.5M4 9.5h16M4 9.5V20h16V9.5M10 20v-5h4v5" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function BoxIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M3.5 8 12 4l8.5 4L12 12 3.5 8Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M3.5 8v8L12 20l8.5-4V8" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M12 12v8" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function OrdersIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M7 7h13l-1.5 8.5h-10L6 4H3" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx="9" cy="20" r="1.2" fill="currentColor" />
+      <circle cx="17" cy="20" r="1.2" fill="currentColor" />
+    </svg>
   );
 }
