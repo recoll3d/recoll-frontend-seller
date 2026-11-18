@@ -9,12 +9,15 @@ import {
 } from "react-icons/fa6";
 
 import { LandingFaq } from "../components/landing/LandingFaq";
-import { SellerHeroArt } from "../components/landing/SellerHeroArt";
 import { ScrollReveal } from "../components/motion/ScrollReveal";
 import { SellerSiteFooter } from "../components/layout/SellerSiteFooter";
 import { SellerSiteHeader } from "../components/layout/SellerSiteHeader";
 import { SellerNavLink } from "../components/navigation/SellerNavLink";
-import { LANDING_HERO_IMAGE, LANDING_WORK_IMAGE } from "../config/landingMedia";
+import {
+  LANDING_HERO_IMAGE,
+  LANDING_PLATFORM_IMAGE,
+  LANDING_WORK_IMAGE,
+} from "../config/landingMedia";
 
 const STATS = [
   { value: "Brasil", label: "Cadastro focado no mercado local" },
@@ -83,8 +86,9 @@ export function SellerLandingPage() {
       <SellerSiteHeader />
 
       {/* Hero — foto real */}
-      <section className="seller-hero-grid w-full border-b border-edge">
-        <div className="seller-hero-copy mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:py-16">
+      <section className="seller-hero-grid w-full border-b border-edge py-14 sm:py-16 lg:py-0">
+        <div className="seller-site-x seller-hero-inner mx-auto">
+          <div className="seller-hero-copy">
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Central do vendedor</p>
           <div className="mt-3 max-w-xl">
             <h1 className="font-primary text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
@@ -112,18 +116,19 @@ export function SellerLandingPage() {
               </li>
             </ul>
           </div>
-        </div>
+          </div>
 
-        <div className="seller-hero-photo-wrap mx-auto w-full max-w-6xl px-4 pb-12 sm:px-6 lg:mx-0 lg:max-w-none lg:flex-1 lg:px-0 lg:pb-0">
+          <div className="seller-hero-photo-wrap pb-12 lg:pb-0 lg:pl-6 xl:pl-10">
           <img
             src={LANDING_HERO_IMAGE}
-            alt="Vendedora empreendedora usando notebook em ambiente de loja"
+            alt=""
             className="seller-hero-photo"
             width={1400}
             height={900}
             decoding="async"
             fetchPriority="high"
           />
+          </div>
         </div>
       </section>
 
@@ -192,7 +197,7 @@ export function SellerLandingPage() {
           <ScrollReveal>
             <span className="mx-auto block h-1 w-10 rounded-full bg-accent" aria-hidden />
             <h2 id="faq-heading" className="mt-4 text-center font-primary text-3xl font-bold sm:text-4xl">
-              Perguntas frequentes
+              Tire suas dúvidas
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-center text-sm leading-6 text-text">
               Dúvidas sobre cadastro, frete e publicação — respostas diretas, sem enrolação.
@@ -212,7 +217,8 @@ export function SellerLandingPage() {
               Pronto para abrir sua loja?
             </h2>
             <p className="mt-3 text-base leading-7 text-text">
-              Abra sua conta de vendedor na Recoll. O cadastro é guiado e costuma levar só alguns minutos.
+              Junte-se aos vendedores que estão construindo presença na Recoll. O cadastro leva poucos minutos para
+              começar.
             </p>
             <SellerNavLink
               to="/register/terms"
@@ -297,7 +303,17 @@ function LandingPlatformSection() {
         </div>
       </ScrollReveal>
       <ScrollReveal delay={0.08}>
-        <SellerHeroArt />
+        <div className="seller-split-photo overflow-hidden rounded-2xl border border-edge">
+          <img
+            src={LANDING_PLATFORM_IMAGE}
+            alt="Vendedor organizando pacotes para envio"
+            className="h-full w-full object-cover"
+            width={1200}
+            height={800}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
       </ScrollReveal>
     </div>
   );

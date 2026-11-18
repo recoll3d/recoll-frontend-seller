@@ -8,7 +8,8 @@ As fotos padrão vêm do **[Pexels](https://www.pexels.com/license/)**: uso grat
 
 | Seção | ID Pexels | URL direta (hero 1400px) |
 |-------|-----------|---------------------------|
-| Hero | `4483610` | https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&cs=tinysrgb&w=1400&dpr=2 |
+| Hero | `4065156` | https://images.pexels.com/photos/4065156/pexels-photo-4065156.jpeg?auto=compress&cs=tinysrgb&w=1400&dpr=2 |
+| Seção painel / catálogo | `6169665` | https://images.pexels.com/photos/6169665/pexels-photo-6169665.jpeg?auto=compress&cs=tinysrgb&w=1200&dpr=2 |
 | Operação (“Tudo o que sua operação precisa”) | `7688336` | https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1200&dpr=2 |
 
 ## Alternativas para o hero (só trocar ID ou `VITE_LANDING_HERO_URL`)

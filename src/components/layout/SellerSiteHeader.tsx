@@ -16,7 +16,7 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
         compact ? "py-3" : "py-4"
       }`}
     >
-      <div className="mx-auto flex w-full items-center justify-between gap-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24">
+      <div className="seller-site-x mx-auto flex w-full items-center justify-between gap-4">
         <SellerNavLink to="/" className="-ml-0.5 flex shrink-0 items-center gap-2.5 text-title lg:-ml-1">
           <img src="/recoll-icon.svg" alt="" width={36} height={36} className="rounded-full" />
           <span className="font-primary text-xl font-bold tracking-tight sm:text-2xl">
@@ -46,7 +46,10 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
             </>
           ) : (
             <>
-              <SellerNavLink to="/login" className="button button-outline hidden min-h-12 px-8 sm:inline-flex">
+              <SellerNavLink
+                to="/login"
+                className="hidden text-sm font-semibold text-outline hover:text-title sm:inline"
+              >
                 Entrar
               </SellerNavLink>
               <SellerNavLink to="/register/terms" className="button button-accent min-h-12 px-10">
