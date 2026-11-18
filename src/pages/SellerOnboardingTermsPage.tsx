@@ -30,7 +30,7 @@ export function SellerOnboardingTermsPage() {
       acceptedTermsAt: new Date().toISOString(),
       termsVersion: TERMS_VERSION,
     });
-    void navigateWithFeedback("/register/coming-soon");
+    void navigateWithFeedback("/register/country");
   };
 
   return (

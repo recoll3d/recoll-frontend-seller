@@ -7,6 +7,8 @@ import { SellerLandingPage } from "./pages/SellerLandingPage";
 import { SellerLoginPlaceholderPage } from "./pages/SellerLoginPlaceholderPage";
 import { SellerOnboardingPlaceholderPage } from "./pages/SellerOnboardingPlaceholderPage";
 import { SellerOnboardingTermsPage } from "./pages/SellerOnboardingTermsPage";
+import { SellerOnboardingBusinessTypePage } from "./pages/register/SellerOnboardingBusinessTypePage";
+import { SellerOnboardingCountryPage } from "./pages/register/SellerOnboardingCountryPage";
 import { ProductApprovalPolicyPage } from "./pages/legal/ProductApprovalPolicyPage";
 
 function SellerHomeRoute() {
@@ -52,6 +54,8 @@ export function AppRoutes() {
         element={<ProductApprovalPolicyPage />}
       />
       <Route path="/register/terms" element={<SellerOnboardingTermsPage />} />
+      <Route path="/register/country" element={<SellerOnboardingCountryPage />} />
+      <Route path="/register/business-type" element={<SellerOnboardingBusinessTypePage />} />
       <Route
         path="/register/coming-soon"
         element={<SellerOnboardingPlaceholderPage />}

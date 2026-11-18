@@ -22,6 +22,8 @@ Abre em **http://localhost:5174** (porta fixa no `vite.config.ts`).
 |-------|-------------|
 | `/` | Landing (redirects to `/dashboard` when logged in) |
 | `/register/terms` | Onboarding step 1 — terms |
+| `/register/country` | Step 2 — country (Brazil) |
+| `/register/business-type` | Step 3 — PF or CNPJ |
 | `/login` | Login (placeholder) |
 | `/dashboard` | Seller dashboard (placeholder) |
 | `/register/coming-soon` | Next step placeholder |

@@ -2,16 +2,16 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { useLocation, useNavigate, type NavigateOptions, type To } from "react-router-dom";
+import { useNavigate, type NavigateOptions, type To } from "react-router-dom";
 import { PiCircleDashedBold } from "react-icons/pi";
 
-const MIN_TRANSITION_MS = 420;
+/** Tempo mínimo visível — alinhado ao app do usuário (~2,6s na splash), mais curto mas perceptível. */
+const MIN_OVERLAY_MS = 1100;
+const FADE_OUT_MS = 380;
 
 type SellerNavigationContextValue = {
   navigating: boolean;
@@ -24,47 +24,51 @@ const SellerNavigationContext = createContext<SellerNavigationContextValue | nul
 
 export function SellerNavigationProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [navigating, setNavigating] = useState(false);
-  const routeKeyRef = useRef(location.key);
-
-  useEffect(() => {
-    if (location.key !== routeKeyRef.current) {
-      routeKeyRef.current = location.key;
-      setNavigating(false);
-    }
-  }, [location.key]);
+  const [phase, setPhase] = useState<"idle" | "loading" | "exit">("idle");
 
   const navigateWithFeedback = useCallback(
     async (to: To, options?: NavigateOptions) => {
-      setNavigating(true);
+      if (phase !== "idle") return;
+      setPhase("loading");
       const started = Date.now();
       navigate(to, options);
       const elapsed = Date.now() - started;
-      const wait = Math.max(0, MIN_TRANSITION_MS - elapsed);
-      if (wait > 0) {
-        await new Promise((resolve) => setTimeout(resolve, wait));
+      const hold = Math.max(0, MIN_OVERLAY_MS - elapsed);
+      if (hold > 0) {
+        await new Promise((resolve) => setTimeout(resolve, hold));
       }
+      setPhase("exit");
+      await new Promise((resolve) => setTimeout(resolve, FADE_OUT_MS));
+      setPhase("idle");
     },
-    [navigate]
+    [navigate, phase]
   );
 
   const value = useMemo(
-    () => ({ navigating, navigateWithFeedback }),
-    [navigating, navigateWithFeedback]
+    () => ({
+      navigating: phase !== "idle",
+      navigateWithFeedback,
+    }),
+    [phase, navigateWithFeedback]
   );
+
+  const showOverlay = phase !== "idle";
+  const exiting = phase === "exit";
 
   return (
     <SellerNavigationContext.Provider value={value}>
       {children}
-      {navigating ? (
+      {showOverlay ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-canvas/75 backdrop-blur-sm"
+          className={`seller-nav-overlay ${exiting ? "seller-nav-overlay--exit" : ""}`}
           role="status"
           aria-live="polite"
           aria-label="Carregando"
         >
-          <PiCircleDashedBold className="animate-spin text-5xl text-accent" />
+          <div className="flex flex-col items-center gap-4">
+            <PiCircleDashedBold className="seller-nav-spinner text-5xl text-accent" />
+            <p className="text-sm font-semibold text-title">Carregando…</p>
+          </div>
         </div>
       ) : null}
     </SellerNavigationContext.Provider>

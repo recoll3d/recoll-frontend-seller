@@ -90,4 +90,55 @@
   .progress-bar-fill {
     @apply bg-gradient-to-r from-accent-hover to-accent;
   }
+  .seller-nav-overlay {
+    @apply fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md;
+    background-color: rgba(11, 16, 24, 0.88);
+    animation: seller-nav-fade-in 0.35s ease-out both;
+  }
+  .seller-nav-overlay--exit {
+    animation: seller-nav-fade-out 0.38s ease-in both;
+  }
+  .seller-nav-spinner {
+    animation: seller-nav-spin 1.15s linear infinite;
+  }
+  .seller-hero-grid {
+    @apply grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)];
+    background: linear-gradient(165deg, #0f1520 0%, #0b1018 45%, #121a26 100%);
+  }
+  .seller-hero-copy {
+    @apply flex flex-col justify-center;
+  }
+  .seller-feature-card {
+    @apply rounded-2xl border border-edge bg-gradient-to-b from-surface to-[#121820];
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+  }
+  .seller-cta-band {
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(5, 242, 131, 0.12), transparent),
+      #0f1520;
+    @apply border-t border-edge;
+  }
+}
+
+@keyframes seller-nav-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes seller-nav-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes seller-nav-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }

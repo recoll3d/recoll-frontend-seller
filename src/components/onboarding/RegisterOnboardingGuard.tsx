@@ -1,0 +1,35 @@
+import type { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
+
+import {
+  hasAcceptedCurrentTerms,
+  loadOnboardingDraft,
+} from "../../utils/sellerOnboardingStorage";
+
+type RegisterOnboardingGuardProps = {
+  children: ReactNode;
+  requireTerms?: boolean;
+  requireCountry?: boolean;
+  requireBusinessType?: boolean;
+};
+
+export function RegisterOnboardingGuard({
+  children,
+  requireTerms = true,
+  requireCountry = false,
+  requireBusinessType = false,
+}: RegisterOnboardingGuardProps) {
+  const d = loadOnboardingDraft();
+
+  if (requireTerms && !hasAcceptedCurrentTerms(d)) {
+    return <Navigate to="/register/terms" replace />;
+  }
+  if (requireCountry && d.country !== "BR") {
+    return <Navigate to="/register/country" replace />;
+  }
+  if (requireBusinessType && !d.businessType) {
+    return <Navigate to="/register/business-type" replace />;
+  }
+
+  return children;
+}

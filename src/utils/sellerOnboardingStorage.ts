@@ -1,8 +1,12 @@
 const DRAFT_KEY = "recoll.seller.onboarding.draft";
 
+export type SellerBusinessType = "individual" | "company";
+
 export type SellerOnboardingDraft = {
   acceptedTermsAt?: string;
   termsVersion: string;
+  country?: "BR";
+  businessType?: SellerBusinessType;
 };
 
 export const TERMS_VERSION = "2025-11-13";
