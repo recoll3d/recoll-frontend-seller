@@ -105,4 +105,4 @@ Padrão igual ao app do usuário (`error-input`, `error-legend`, `field-group`, 
 
 ---
 
-_Última atualização: iniciar seller app (landing + termos)._
+_Última atualização: landing rica (hero Pexels, vantagens, passos, FAQ, CTAs). Ver `docs/IMAGE_ATTRIBUTION.md`._

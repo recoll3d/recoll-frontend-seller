@@ -1,4 +1,4 @@
-/** Ilustração SVG Recoll — sem foto de stock nem créditos de terceiros. */
+/** Ilustração SVG Recoll (seção “Painel”) — arte própria, sem stock. */
 export function SellerHeroArt() {
   return (
     <div

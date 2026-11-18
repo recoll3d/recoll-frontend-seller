@@ -106,7 +106,39 @@
     background: linear-gradient(165deg, #0f1520 0%, #0b1018 55%, #121a26 100%);
   }
   .seller-hero-copy {
-    @apply flex flex-col justify-center lg:flex-1;
+    @apply flex flex-col justify-center lg:flex-1 lg:max-w-[52%];
+  }
+  .seller-hero-photo-wrap {
+    @apply flex items-stretch justify-center lg:min-h-[420px];
+  }
+  .seller-hero-photo {
+    @apply h-full w-full max-h-[420px] object-cover lg:max-h-none;
+    border-radius: 1.25rem 0 0 1.25rem;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    mask-image: linear-gradient(to left, black 82%, transparent 100%);
+  }
+  @media (max-width: 1023px) {
+    .seller-hero-photo {
+      border-radius: 1.25rem;
+      mask-image: none;
+      max-height: 320px;
+    }
+  }
+  .seller-stat-pill {
+    @apply rounded-xl border border-edge px-5 py-4;
+    background-color: color-mix(in srgb, var(--color-surface) 55%, transparent);
+  }
+  .seller-step-card {
+    @apply rounded-2xl border border-edge p-6;
+    background-color: color-mix(in srgb, var(--color-surface) 65%, transparent);
+  }
+  .seller-step-number {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-full bg-accent/20 font-primary text-sm font-bold text-accent;
+  }
+  .seller-split-photo {
+    min-height: 260px;
+    aspect-ratio: 4 / 3;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
   }
   .seller-hero-art {
     background: radial-gradient(circle at 30% 40%, rgba(5, 242, 131, 0.14), transparent 55%),
