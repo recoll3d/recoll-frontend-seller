@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 
 import { FormTextField } from "../../components/forms/FormTextField";
 import { OnboardingShell } from "../../components/onboarding/OnboardingShell";
@@ -29,18 +29,6 @@ export function SellerOnboardingShippingPage() {
   const [cepError, setCepError] = useState<string | null>(null);
   const [lookingUp, setLookingUp] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    saveOnboardingDraft({
-      shippingPostalCode: sanitizeCep(postalCode),
-      shippingStreet: street.trim(),
-      shippingNumber: number.trim(),
-      shippingComplement: complement.trim(),
-      shippingNeighborhood: neighborhood.trim(),
-      shippingCity: city.trim(),
-      shippingState: state,
-    });
-  }, [postalCode, street, number, complement, neighborhood, city, state]);
 
   const errors = useMemo(() => {
     if (!submitted) return {} as Record<string, string>;

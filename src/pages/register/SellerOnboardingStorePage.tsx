@@ -21,7 +21,7 @@ export function SellerOnboardingStorePage() {
   const draft = loadOnboardingDraft();
   const [storeName, setStoreName] = useState(draft.storeName ?? "");
   const [storeSlug, setStoreSlug] = useState(draft.storeSlug ?? "");
-  const [slugTouched, setSlugTouched] = useState(Boolean(draft.storeSlug));
+  const [slugTouched, setSlugTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [touched, setTouched] = useState({ name: false, slug: false });
   const [availability, setAvailability] = useState<
@@ -90,13 +90,6 @@ export function SellerOnboardingStorePage() {
     };
   }, [storeSlug, slugFormatError]);
 
-  useEffect(() => {
-    saveOnboardingDraft({
-      storeName: storeName.trim(),
-      storeSlug: storeSlug.trim(),
-    });
-  }, [storeName, storeSlug]);
-
   const onNameChange = (value: string) => {
     setStoreName(value);
     if (!slugTouched) {
@@ -161,7 +154,7 @@ export function SellerOnboardingStorePage() {
               hint={
                 availability === "free"
                     ? "Endereço disponível."
-                    : "O nome da loja preenche este campo até você editá-lo. Ele não altera o nome público."
+                    : "recoll.com.br/store/seu-endereco — o nome preenche este campo até você editá-lo."
               }
               onChange={(event) => {
                 setSlugTouched(true);

@@ -78,7 +78,7 @@ export function SellerOnboardingReviewPage() {
             </ReviewBlock>
             <ReviewBlock title="Loja" editTo="/register/store">
               <p>{draft.storeName}</p>
-              <p>recoll.com.br/loja/{draft.storeSlug}</p>
+              <p>recoll.com.br/store/{draft.storeSlug}</p>
             </ReviewBlock>
             <ReviewBlock title="Envio" editTo="/register/shipping">
               <p>{address}</p>

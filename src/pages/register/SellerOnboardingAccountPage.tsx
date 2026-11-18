@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 
 import { FormPasswordField } from "../../components/forms/FormPasswordField";
 import { FormTextField } from "../../components/forms/FormTextField";
@@ -39,13 +39,6 @@ export function SellerOnboardingAccountPage() {
     if (!touched.confirm && !submitted) return null;
     return getPasswordConfirmError(password, confirmPassword);
   }, [password, confirmPassword, touched.confirm, submitted]);
-
-  useEffect(() => {
-    saveOnboardingDraft({
-      accountEmail: email.trim().toLowerCase(),
-      accountPassword: password,
-    });
-  }, [email, password]);
 
   const canAdvance =
     !getEmailFormatError(email) &&
