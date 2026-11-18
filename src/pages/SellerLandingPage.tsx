@@ -93,7 +93,7 @@ export function SellerLandingPage() {
 
       {/* Hero — foto real */}
       <section className="seller-hero-grid w-full border-b border-edge">
-        <div className="seller-hero-copy seller-site-x py-14 sm:py-16 lg:py-20">
+        <div className="seller-hero-copy seller-site-x py-12 sm:py-14 lg:py-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Central do vendedor</p>
           <div className="mt-3 max-w-xl">
             <h1 className="font-primary text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">

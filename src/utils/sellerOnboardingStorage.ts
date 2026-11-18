@@ -14,6 +14,13 @@ export type SellerOnboardingDraft = {
   accountEmail?: string;
   storeName?: string;
   storeSlug?: string;
+  shippingPostalCode?: string;
+  shippingStreet?: string;
+  shippingNumber?: string;
+  shippingComplement?: string;
+  shippingNeighborhood?: string;
+  shippingCity?: string;
+  shippingState?: string;
 };
 
 export const TERMS_VERSION = "2025-11-13";

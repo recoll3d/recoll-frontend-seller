@@ -56,7 +56,7 @@ export function SellerOnboardingStorePage() {
       storeName: storeName.trim(),
       storeSlug: storeSlug.trim(),
     });
-    void navigateWithFeedback("/register/coming-soon");
+    void navigateWithFeedback("/register/shipping");
   };
 
   return (
@@ -86,7 +86,7 @@ export function SellerOnboardingStorePage() {
               id="seller-store-name"
               label="Nome público da loja"
               autoComplete="organization"
-              placeholder="Ex.: Minha Loja 3D"
+              placeholder="Ex.: Loja do João"
               value={storeName}
               error={nameError}
               onChange={(event) => onNameChange(event.target.value)}
@@ -97,7 +97,7 @@ export function SellerOnboardingStorePage() {
               label="Endereço da loja (slug)"
               autoComplete="off"
               spellCheck={false}
-              placeholder="minha-loja-3d"
+              placeholder="loja-do-joao"
               value={storeSlug}
               error={slugError}
               hint="recoll.com.br/loja/seu-slug (exemplo — URL final pode variar)."

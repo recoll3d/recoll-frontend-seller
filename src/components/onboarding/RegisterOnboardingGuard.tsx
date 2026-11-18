@@ -13,6 +13,7 @@ type RegisterOnboardingGuardProps = {
   requireBusinessType?: boolean;
   requireAccount?: boolean;
   requireStore?: boolean;
+  requireShipping?: boolean;
 };
 
 export function RegisterOnboardingGuard({
@@ -22,6 +23,7 @@ export function RegisterOnboardingGuard({
   requireBusinessType = false,
   requireAccount = false,
   requireStore = false,
+  requireShipping = false,
 }: RegisterOnboardingGuardProps) {
   const d = loadOnboardingDraft();
 
@@ -39,6 +41,12 @@ export function RegisterOnboardingGuard({
   }
   if (requireStore && (!d.storeName || !d.storeSlug)) {
     return <Navigate to="/register/store" replace />;
+  }
+  if (
+    requireShipping &&
+    (!d.shippingPostalCode || !d.shippingStreet || !d.shippingCity || !d.shippingState)
+  ) {
+    return <Navigate to="/register/shipping" replace />;
   }
 
   return children;

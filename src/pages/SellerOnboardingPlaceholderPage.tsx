@@ -6,22 +6,23 @@ import { loadOnboardingDraft } from "../utils/sellerOnboardingStorage";
 
 export function SellerOnboardingPlaceholderPage() {
   const draft = loadOnboardingDraft();
-  const typeLabel =
-    draft.businessType === "company"
-      ? "empresa (CNPJ)"
-      : draft.businessType === "individual"
-        ? "pessoa física (CPF)"
-        : "—";
 
   return (
-    <RegisterOnboardingGuard requireTerms requireCountry requireBusinessType requireAccount requireStore>
+    <RegisterOnboardingGuard
+      requireTerms
+      requireCountry
+      requireBusinessType
+      requireAccount
+      requireStore
+      requireShipping
+    >
       <div className="min-h-full bg-canvas">
         <SellerSiteHeader compact />
         <OnboardingShell
-          progressPercent={72}
+          progressPercent={88}
           title="Próximas etapas do cadastro"
-          description={`Loja: ${draft.storeName ?? "—"} (${draft.storeSlug ?? "—"}). Em breve: endereço de envio, revisão e envio para aprovação. Conta: ${draft.accountEmail ?? "—"}.`}
-          backTo="/register/store"
+          description={`Envio em ${draft.shippingCity ?? "—"}/${draft.shippingState ?? "—"}. Em breve: revisão dos dados e envio para aprovação. Loja: ${draft.storeName ?? "—"}.`}
+          backTo="/register/shipping"
           footer={
             <SellerNavLink to="/" className="button button-outline w-full sm:w-auto">
               Voltar ao início
