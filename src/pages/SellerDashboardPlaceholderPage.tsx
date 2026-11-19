@@ -1,8 +1,15 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
+import { FormTextField } from "../components/forms/FormTextField";
 import { SellerSiteHeader } from "../components/layout/SellerSiteHeader";
 import { useSellerAuth } from "../contexts/SellerAuthContext";
-import { fetchSellerAccount, type SellerAccount } from "../services/sellerAccount";
+import {
+  createSellerProduct,
+  fetchSellerAccount,
+  listSellerProducts,
+  type SellerAccount,
+  type SellerProduct,
+} from "../services/sellerAccount";
 
 type PanelSection = "home" | "store" | "products" | "orders";
 
@@ -13,15 +20,19 @@ const SECTIONS: { id: PanelSection; label: string; icon: ReactNode }[] = [
   { id: "orders", label: "Pedidos", icon: <OrdersIcon /> },
 ];
 
-const STATUS_LABEL: Record<string, string> = {
-  pending_approval: "Aguardando aprovação",
-  active: "No ar",
-  suspended: "Suspensa",
-};
+function storeStatusLabel(status: string) {
+  if (status === "suspended") return "Suspensa";
+  return "Aberta";
+}
+
+function formatPrice(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 export function SellerDashboardPlaceholderPage() {
   const { session, signIn } = useSellerAuth();
   const [section, setSection] = useState<PanelSection>("home");
+  const [products, setProducts] = useState<SellerProduct[]>([]);
   const [account, setAccount] = useState<SellerAccount | null>(
     session
       ? {
@@ -53,27 +64,35 @@ export function SellerDashboardPlaceholderPage() {
       .catch(() => {
         // Mantém os dados da sessão se a consulta falhar.
       });
+    void listSellerProducts(session.token)
+      .then((items) => {
+        if (!cancelled) setProducts(items);
+      })
+      .catch(() => {
+        // A lista aparece quando a consulta responde.
+      });
     return () => {
       cancelled = true;
     };
   }, [session?.token, signIn]);
 
-  const status = account?.status ?? "pending_approval";
+  const status = account?.status ?? "active";
+  const suspended = status === "suspended";
+  const inReview = products.filter((product) => !product.published).length;
   const storeName = account?.storeName || "Sua loja";
   const storeSlug = account?.storeSlug;
   const email = account?.email || session?.email;
-  const pending = status !== "active";
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-      <SellerSiteHeader />
+      <SellerSiteHeader rail />
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-56 shrink-0 flex-col border-r border-edge/70 lg:flex">
           <div className="px-5 pb-2 pt-6">
             <p className="truncate font-primary text-xl font-bold text-title">{storeName}</p>
-            <p className="mt-1 text-xs text-text">{STATUS_LABEL[status] ?? status}</p>
+            <p className="mt-1 text-xs text-text">{storeStatusLabel(status)}</p>
           </div>
-          <nav className="mt-4 flex flex-col px-3">
+          <nav className="mt-4 flex flex-col">
             {SECTIONS.map((item) => (
               <NavButton
                 key={item.id}
@@ -113,6 +132,8 @@ export function SellerDashboardPlaceholderPage() {
                   email={email}
                   storeSlug={storeSlug}
                   status={status}
+                  productCount={products.length}
+                  inReview={inReview}
                   onOpenProducts={() => setSection("products")}
                 />
               ) : null}
@@ -124,7 +145,14 @@ export function SellerDashboardPlaceholderPage() {
                   status={status}
                 />
               ) : null}
-              {section === "products" ? <ProductsSection pending={pending} /> : null}
+              {section === "products" ? (
+                <ProductsSection
+                  products={products}
+                  suspended={suspended}
+                  token={session?.token}
+                  onCreated={(product) => setProducts((current) => [product, ...current])}
+                />
+              ) : null}
               {section === "orders" ? <OrdersSection /> : null}
             </div>
           </main>
@@ -148,10 +176,14 @@ function NavButton({
       type="button"
       aria-current={selected ? "page" : undefined}
       onClick={() => onSelect(item.id)}
-      className={`flex items-center gap-3 border-l-2 px-3 py-2.5 text-left text-sm font-semibold ${
-        selected ? "border-accent text-title" : "border-transparent text-text hover:text-title"
+      className={`relative flex items-center gap-3 px-5 py-2.5 text-left text-sm font-semibold ${
+        selected ? "text-title" : "text-text hover:text-title"
       }`}
     >
+      <span
+        className={`absolute bottom-2 left-0 top-2 w-0.5 ${selected ? "bg-accent" : "bg-transparent"}`}
+        aria-hidden
+      />
       <span className={selected ? "text-accent" : "text-text"}>{item.icon}</span>
       {item.label}
     </button>
@@ -163,62 +195,60 @@ function HomeSection({
   email,
   storeSlug,
   status,
+  productCount,
+  inReview,
   onOpenProducts,
 }: {
   storeName: string;
   email?: string;
   storeSlug?: string;
   status: string;
+  productCount: number;
+  inReview: number;
   onOpenProducts: () => void;
 }) {
-  const live = status === "active";
+  const suspended = status === "suspended";
+  const hasListing = productCount > 0;
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-primary text-4xl font-bold leading-none text-title sm:text-5xl">
-            {storeName}
-          </h1>
-          <p className="mt-3 text-sm text-text sm:text-base">
-            {email}
-            {storeSlug ? ` · recoll.com.br/store/${storeSlug}` : ""}
-          </p>
-        </div>
-        <p className="text-sm font-semibold text-accent">{STATUS_LABEL[status] ?? status}</p>
-      </div>
+      <h1 className="font-primary text-4xl font-bold leading-none text-title sm:text-5xl">
+        {storeName}
+      </h1>
+      <p className="mt-3 text-sm text-text sm:text-base">
+        {email}
+        {storeSlug ? ` · recoll.com.br/store/${storeSlug}` : ""}
+      </p>
 
       <p className="mt-6 max-w-2xl text-sm leading-6 text-text sm:text-base">
-        {status === "pending_approval"
-          ? "Recebemos o cadastro. A vitrine continua oculta para quem compra até a análise terminar."
-          : live
-            ? "A loja está no ar. Anúncios aprovados aparecem para quem compra."
-            : "Esta loja não pode publicar anúncios no momento."}
+        {suspended
+          ? "Esta loja está suspensa e não pode enviar anúncios."
+          : "A loja já está aberta. Cada anúncio passa pela equipe Recoll e só aparece para quem compra depois dessa revisão."}
       </p>
 
       <div className="mt-10 grid grid-cols-3 gap-4 border-y border-edge/70 py-6">
-        <Metric value="0" label="Produtos" />
+        <Metric value={String(productCount)} label="Anúncios" />
+        <Metric value={String(inReview)} label="Em revisão" />
         <Metric value="0" label="Pedidos" />
-        <Metric value={live ? "No ar" : "Oculta"} label="Vitrine" />
       </div>
 
       <ol className="mt-10 grid gap-8 md:grid-cols-3">
-        <Step title="Dados recebidos" done>
-          Conta, nome da loja e endereço de envio já estão com a Recoll.
+        <Step title="Conta pronta" done>
+          Nome, endereço e dados de envio já estão nesta loja.
         </Step>
-        <Step title="Análise da loja" current={!live}>
-          A equipe confere o cadastro antes de liberar a vitrine.
+        <Step title="Loja aberta" done={!suspended}>
+          O endereço público já existe. A vitrine mostra só anúncio aprovado.
         </Step>
-        <Step title="Loja no ar" done={live}>
-          Com a aprovação, os anúncios podem aparecer para o comprador.
+        <Step title="Primeiro anúncio" current={!hasListing && !suspended} done={hasListing}>
+          O anúncio entra em revisão. Antes disso, ninguém o vê na Recoll.
         </Step>
       </ol>
 
       <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-edge/70 pt-8">
         <p className="max-w-md text-sm leading-6 text-text">
-          Separe fotos e a descrição do primeiro produto. A publicação abre depois da aprovação.
+          Comece pelo nome, a descrição e o preço. Fotos entram no passo seguinte.
         </p>
         <button type="button" className="button button-accent" onClick={onOpenProducts}>
-          Ver produtos
+          Criar anúncio
         </button>
       </div>
     </div>
@@ -243,22 +273,113 @@ function StoreSection({
         <Info label="Nome público" value={storeName} />
         <Info label="Endereço" value={storeSlug ? `recoll.com.br/store/${storeSlug}` : "—"} />
         <Info label="E-mail da conta" value={email || "—"} />
-        <Info label="Situação" value={STATUS_LABEL[status] ?? status} />
+        <Info label="Situação" value={storeStatusLabel(status)} />
       </dl>
     </div>
   );
 }
 
-function ProductsSection({ pending }: { pending: boolean }) {
+function ProductsSection({
+  products,
+  suspended,
+  token,
+  onCreated,
+}: {
+  products: SellerProduct[];
+  suspended: boolean;
+  token?: string;
+  onCreated: (product: SellerProduct) => void;
+}) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+
+  function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!token || sending || suspended) return;
+    setSending(true);
+    setError(null);
+    void createSellerProduct(token, { name, description, priceBrl: price })
+      .then((product) => {
+        onCreated(product);
+        setName("");
+        setDescription("");
+        setPrice("");
+      })
+      .catch((cause: unknown) => {
+        setError(cause instanceof Error ? cause.message : "Não foi possível criar o anúncio.");
+      })
+      .finally(() => setSending(false));
+  }
+
   return (
     <div>
       <h1 className="font-primary text-4xl font-bold text-title">Produtos</h1>
       <p className="mt-3 max-w-xl text-sm leading-6 text-text sm:text-base">
-        {pending
-          ? "O primeiro anúncio fica disponível quando a loja for aprovada. Até lá, nada é publicado para quem compra."
-          : "Quando houver anúncios, eles aparecem nesta lista."}
+        O anúncio fica em revisão até a equipe Recoll aprovar. Só então ele aparece para quem compra.
       </p>
-      <EmptyState value="0" label="Nenhum produto nesta loja." />
+
+      {products.length ? (
+        <ul className="mt-8 divide-y divide-edge/70 border-y border-edge/70">
+          {products.map((product) => (
+            <li key={product.id} className="flex items-baseline justify-between gap-4 py-4">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-title">{product.name}</p>
+                <p className="mt-1 text-sm text-text">{formatPrice(product.priceBrl)}</p>
+              </div>
+              <p className="shrink-0 text-sm font-semibold text-accent">
+                {product.published ? "No ar" : "Em revisão"}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-8 text-sm text-text">Nenhum anúncio nesta loja.</p>
+      )}
+
+      <form className="mt-10 max-w-xl space-y-5" onSubmit={onSubmit}>
+        <h2 className="font-primary text-2xl font-bold text-title">Novo anúncio</h2>
+        <FormTextField
+          id="listing-name"
+          label="Nome"
+          value={name}
+          maxLength={120}
+          onChange={(event) => setName(event.target.value)}
+          disabled={suspended || sending}
+        />
+        <div className="field-group">
+          <label className="field-label" htmlFor="listing-description">
+            Descrição
+          </label>
+          <textarea
+            id="listing-description"
+            className="input input-area"
+            value={description}
+            maxLength={4000}
+            onChange={(event) => setDescription(event.target.value)}
+            disabled={suspended || sending}
+          />
+        </div>
+        <FormTextField
+          id="listing-price"
+          label="Preço"
+          inputMode="decimal"
+          placeholder="0,00"
+          value={price}
+          onChange={(event) => setPrice(event.target.value)}
+          disabled={suspended || sending}
+        />
+        {error ? (
+          <p className="error-legend" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <button type="submit" className="button button-accent" disabled={suspended || sending}>
+          {sending ? "Enviando…" : "Enviar para revisão"}
+        </button>
+      </form>
     </div>
   );
 }

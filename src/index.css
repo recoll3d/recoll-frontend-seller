@@ -55,6 +55,12 @@
     @apply min-h-14 max-h-14 rounded-[9px] w-full outline-none px-6 text-title placeholder:text-text border border-edge;
     @apply font-medium text-sm sm:text-base bg-body;
   }
+  .input-area {
+    min-height: 8rem;
+    max-height: none;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
   .input:-webkit-autofill,
   .input:-webkit-autofill:hover,
   .input:-webkit-autofill:focus,

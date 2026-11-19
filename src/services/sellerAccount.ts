@@ -77,6 +77,44 @@ export async function loginSellerAccount(
   return (await response.json()) as SellerSessionPayload;
 }
 
+export type SellerProduct = {
+  id: string;
+  name: string;
+  description: string;
+  priceBrl: number;
+  published: boolean;
+};
+
+export async function listSellerProducts(token: string): Promise<SellerProduct[]> {
+  const response = await fetch(`${apiBase()}/marketplace/seller-accounts/products`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  const data = (await response.json()) as { products: SellerProduct[] };
+  return data.products;
+}
+
+export async function createSellerProduct(
+  token: string,
+  input: { name: string; description: string; priceBrl: string }
+): Promise<SellerProduct> {
+  const response = await fetch(`${apiBase()}/marketplace/seller-accounts/products`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  const data = (await response.json()) as { product: SellerProduct };
+  return data.product;
+}
+
 export async function fetchSellerAccount(token: string): Promise<SellerAccount> {
   const response = await fetch(`${apiBase()}/marketplace/seller-accounts/me`, {
     headers: { Authorization: `Bearer ${token}` },

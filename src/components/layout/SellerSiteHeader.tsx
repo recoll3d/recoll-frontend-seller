@@ -4,9 +4,10 @@ import { useSellerNavigation } from "../../contexts/SellerNavigationContext";
 
 type SellerSiteHeaderProps = {
   compact?: boolean;
+  rail?: boolean;
 };
 
-export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
+export function SellerSiteHeader({ compact, rail }: SellerSiteHeaderProps) {
   const { isAuthenticated, signOut } = useSellerAuth();
   const { navigateWithFeedback } = useSellerNavigation();
 
@@ -16,10 +17,20 @@ export function SellerSiteHeader({ compact }: SellerSiteHeaderProps) {
         compact ? "py-3" : "py-4"
       }`}
     >
-      <div className="seller-site-x seller-header-row mx-auto flex w-full items-center justify-between gap-1.5 max-[380px]:px-2 sm:gap-4">
+      <div
+        className={
+          rail
+            ? "flex w-full items-center justify-between gap-4 pl-5 pr-4 sm:pr-8 lg:pr-12"
+            : "seller-site-x seller-header-row mx-auto flex w-full items-center justify-between gap-1.5 max-[380px]:px-2 sm:gap-4"
+        }
+      >
         <SellerNavLink
           to="/"
-          className="-ml-0.5 flex shrink-0 items-center gap-3 sm:gap-2 lg:-ml-1"
+          className={
+            rail
+              ? "flex shrink-0 items-center gap-3 sm:gap-2"
+              : "-ml-0.5 flex shrink-0 items-center gap-3 sm:gap-2 lg:-ml-1"
+          }
           aria-label="Recoll"
         >
           <img src="/recoll-icon.svg" alt="" className="h-6 w-6" />
