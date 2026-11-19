@@ -1,10 +1,9 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
-import { FormTextField } from "../components/forms/FormTextField";
 import { SellerSiteHeader } from "../components/layout/SellerSiteHeader";
+import { SellerListingForm } from "../components/products/SellerListingForm";
 import { useSellerAuth } from "../contexts/SellerAuthContext";
 import {
-  createSellerProduct,
   fetchSellerAccount,
   listSellerProducts,
   type SellerAccount,
@@ -245,7 +244,7 @@ function HomeSection({
 
       <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-edge/70 pt-8">
         <p className="max-w-md text-sm leading-6 text-text">
-          Comece pelo nome, a descrição e o preço. Fotos entram no passo seguinte.
+          Nome, fotos, preço e ficha técnica. O anúncio segue para a revisão da equipe.
         </p>
         <button type="button" className="button button-accent" onClick={onOpenProducts}>
           Criar anúncio
@@ -290,30 +289,6 @@ function ProductsSection({
   token?: string;
   onCreated: (product: SellerProduct) => void;
 }) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (!token || sending || suspended) return;
-    setSending(true);
-    setError(null);
-    void createSellerProduct(token, { name, description, priceBrl: price })
-      .then((product) => {
-        onCreated(product);
-        setName("");
-        setDescription("");
-        setPrice("");
-      })
-      .catch((cause: unknown) => {
-        setError(cause instanceof Error ? cause.message : "Não foi possível criar o anúncio.");
-      })
-      .finally(() => setSending(false));
-  }
-
   return (
     <div>
       <h1 className="font-primary text-4xl font-bold text-title">Produtos</h1>
@@ -339,47 +314,7 @@ function ProductsSection({
         <p className="mt-8 text-sm text-text">Nenhum anúncio nesta loja.</p>
       )}
 
-      <form className="mt-10 max-w-xl space-y-5" onSubmit={onSubmit}>
-        <h2 className="font-primary text-2xl font-bold text-title">Novo anúncio</h2>
-        <FormTextField
-          id="listing-name"
-          label="Nome"
-          value={name}
-          maxLength={120}
-          onChange={(event) => setName(event.target.value)}
-          disabled={suspended || sending}
-        />
-        <div className="field-group">
-          <label className="field-label" htmlFor="listing-description">
-            Descrição
-          </label>
-          <textarea
-            id="listing-description"
-            className="input input-area"
-            value={description}
-            maxLength={4000}
-            onChange={(event) => setDescription(event.target.value)}
-            disabled={suspended || sending}
-          />
-        </div>
-        <FormTextField
-          id="listing-price"
-          label="Preço"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={price}
-          onChange={(event) => setPrice(event.target.value)}
-          disabled={suspended || sending}
-        />
-        {error ? (
-          <p className="error-legend" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <button type="submit" className="button button-accent" disabled={suspended || sending}>
-          {sending ? "Enviando…" : "Enviar para revisão"}
-        </button>
-      </form>
+      <SellerListingForm token={token} suspended={suspended} onCreated={onCreated} />
     </div>
   );
 }

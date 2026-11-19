@@ -81,8 +81,25 @@ export type SellerProduct = {
   id: string;
   name: string;
   description: string;
+  categoryTag?: string;
   priceBrl: number;
   published: boolean;
+};
+
+export type SellerListingDraft = {
+  name: string;
+  description: string;
+  categoryTag: string;
+  priceBrl: string;
+  creditsDiscount: string;
+  biocoinDiscountPercent: string;
+  stockAvailable: string;
+  weightG: string;
+  heightCm: string;
+  widthCm: string;
+  lengthCm: string;
+  storefront: Record<string, unknown>;
+  images: File[];
 };
 
 export async function listSellerProducts(token: string): Promise<SellerProduct[]> {
@@ -98,7 +115,7 @@ export async function listSellerProducts(token: string): Promise<SellerProduct[]
 
 export async function createSellerProduct(
   token: string,
-  input: { name: string; description: string; priceBrl: string }
+  input: SellerListingDraft
 ): Promise<SellerProduct> {
   const response = await fetch(`${apiBase()}/marketplace/seller-accounts/products`, {
     method: "POST",
@@ -106,12 +123,40 @@ export async function createSellerProduct(
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(input),
+    body: JSON.stringify({
+      name: input.name,
+      description: input.description,
+      categoryTag: input.categoryTag,
+      priceBrl: input.priceBrl,
+      creditsDiscount: input.creditsDiscount,
+      biocoinDiscountPercent: input.biocoinDiscountPercent,
+      stockAvailable: input.stockAvailable,
+      weightG: input.weightG,
+      heightCm: input.heightCm,
+      widthCm: input.widthCm,
+      lengthCm: input.lengthCm,
+      storefront: input.storefront,
+    }),
   });
   if (!response.ok) {
     throw new Error(await readError(response));
   }
   const data = (await response.json()) as { product: SellerProduct };
+  if (input.images.length) {
+    const body = new FormData();
+    input.images.forEach((file) => body.append("images", file));
+    const upload = await fetch(
+      `${apiBase()}/marketplace/seller-accounts/products/${data.product.id}/images`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body,
+      }
+    );
+    if (!upload.ok) {
+      throw new Error(await readError(upload));
+    }
+  }
   return data.product;
 }
 
