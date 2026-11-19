@@ -1,58 +1,92 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 
-import { FormTextField } from "../forms/FormTextField";
+import {
+  DIMENSION_VARIANT_LABELS,
+  isGroupLockedTitle,
+  LENGTH_DIMENSION_UNITS,
+  LISTING_CATEGORIES,
+  QUICK_SPEC_LABELS,
+  SPEC_LABELS,
+  SUSTAINABLE_MATERIAL_OPTIONS,
+  VARIANT_AXIS_PRESETS,
+} from "../../data/listingCatalog";
 import { createSellerProduct, type SellerProduct } from "../../services/sellerAccount";
-
-const CATEGORIES = [
-  "Produtos sustentáveis e reciclados",
-  "Filamentos e materiais para impressão 3D",
-] as const;
-
-const MATERIALS = [
-  "PLA reciclado",
-  "PLA sustentável",
-  "PETG reciclado",
-  "Material compostável",
-  "Outro",
-] as const;
-
-const QUICK_LABELS = ["Material", "Cor", "Peso", "Diâmetro", "Marca", "Condição", "Outro"] as const;
-const SPEC_LABELS = [
-  "Material",
-  "Cor",
-  "Peso",
-  "Diâmetro",
-  "Marca",
-  "Condição",
-  "Temperatura do bico",
-  "Temperatura da mesa",
-  "Compatibilidade",
-  "Embalagem",
-  "Outro",
-] as const;
+import {
+  COLOR_PALETTE_CUSTOM_VALUE,
+  COLOR_SWATCH_PRESETS,
+  normalizeHex,
+  paletteSelectValueForHex,
+  resolveColorVariantFromHex,
+} from "../../utils/colorNameFromHex";
+import { formatBrl, formatPriceMaskFromDigits, parseMoneyBrl } from "../../utils/moneyBrl";
+import { formatPercentInputDisplay, sanitizePercentInput } from "../../utils/sanitizePercentInput";
+import { FormTextField } from "../forms/FormTextField";
+import {
+  AttributeLabelSelect,
+  AttributeValueField,
+  shouldClearSpecValueOnLabelChange,
+} from "./ListingAttributeFields";
 
 type Row = { id: string; label: string; value: string };
-type SpecGroup = { id: string; group: string; items: Row[] };
-type VariantOption = { id: string; name: string; swatchColor: string };
+type SpecGroup = { id: string; group: string; locked: boolean; items: Row[] };
+type VariantOption = {
+  id: string;
+  name: string;
+  swatchColor: string;
+  dimensionLabel?: string;
+  dimensionAmount?: string;
+  dimensionUnit?: string;
+};
+type PendingImage = { id: string; file: File; previewUrl: string };
+type FieldErrors = Record<string, string>;
 
 function nextId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function parseMoney(value: string) {
-  const raw = value.trim().replace(/\s/g, "");
-  if (!raw) return 0;
-  const comma = raw.lastIndexOf(",");
-  const dot = raw.lastIndexOf(".");
-  let numeric = raw;
-  if (comma > dot) numeric = raw.replace(/\./g, "").replace(",", ".");
-  else if (comma !== -1) numeric = raw.replace(",", ".");
-  const price = Number(numeric);
-  return Number.isFinite(price) ? price : 0;
-}
-
 function isSustainable(category: string) {
   return category.toLowerCase().includes("sustent");
+}
+
+function withDimension(
+  option: VariantOption,
+  parts: { dimensionLabel: string; dimensionAmount: string; dimensionUnit: string }
+): VariantOption {
+  const amount = parts.dimensionAmount.trim();
+  return {
+    ...option,
+    ...parts,
+    name: amount ? `${parts.dimensionLabel} ${amount} ${parts.dimensionUnit}`.trim() : "",
+  };
+}
+
+function createOption(axis: string, index = 0): VariantOption {
+  if (axis === "Cor") {
+    const preset = COLOR_SWATCH_PRESETS[index % COLOR_SWATCH_PRESETS.length];
+    const resolved = resolveColorVariantFromHex(preset.hex);
+    return { id: nextId("opt"), name: resolved.name, swatchColor: resolved.hex };
+  }
+  if (axis === "Dimensão") {
+    return withDimension(
+      { id: nextId("opt"), name: "", swatchColor: "#808080" },
+      {
+        dimensionLabel: DIMENSION_VARIANT_LABELS[0],
+        dimensionAmount: "",
+        dimensionUnit: LENGTH_DIMENSION_UNITS[0],
+      }
+    );
+  }
+  return { id: nextId("opt"), name: "", swatchColor: "#808080" };
+}
+
+function initialSpecGroup(): SpecGroup {
+  return {
+    id: nextId("grp"),
+    group: "Especificações técnicas",
+    locked: true,
+    items: [{ id: nextId("spec"), label: "Material", value: "" }],
+  };
 }
 
 export function SellerListingForm({
@@ -66,93 +100,176 @@ export function SellerListingForm({
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryTag, setCategoryTag] = useState<string>(CATEGORIES[0]);
+  const [categoryTag, setCategoryTag] = useState<string>(LISTING_CATEGORIES[0]);
   const [priceBrl, setPriceBrl] = useState("");
   const [promo, setPromo] = useState("");
-  const [biocoinPercent, setBiocoinPercent] = useState("0");
+  const [biocoinPercent, setBiocoinPercent] = useState("0%");
   const [highlights, setHighlights] = useState("");
-  const [images, setImages] = useState<File[]>([]);
+  const [images, setImages] = useState<PendingImage[]>([]);
   const [material, setMaterial] = useState("");
   const [materialOther, setMaterialOther] = useState("");
   const [materialOrigin, setMaterialOrigin] = useState("");
   const [packaging, setPackaging] = useState("");
   const [certification, setCertification] = useState("");
   const [hasVariants, setHasVariants] = useState(false);
-  const [axis, setAxis] = useState("Cor");
+  const [axis, setAxis] = useState<(typeof VARIANT_AXIS_PRESETS)[number]>("Cor");
   const [axisCustom, setAxisCustom] = useState("");
-  const [options, setOptions] = useState<VariantOption[]>([
-    { id: nextId("opt"), name: "", swatchColor: "#05f283" },
-  ]);
+  const [options, setOptions] = useState<VariantOption[]>(() => [createOption("Cor")]);
   const [quickSpecs, setQuickSpecs] = useState<Row[]>([
     { id: nextId("qs"), label: "Material", value: "" },
   ]);
-  const [specGroups, setSpecGroups] = useState<SpecGroup[]>([
-    {
-      id: nextId("grp"),
-      group: "Especificações técnicas",
-      items: [{ id: nextId("spec"), label: "Material", value: "" }],
-    },
-  ]);
+  const [specGroups, setSpecGroups] = useState<SpecGroup[]>(() => [initialSpecGroup()]);
   const [stock, setStock] = useState("");
   const [weightG, setWeightG] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [widthCm, setWidthCm] = useState("");
   const [lengthCm, setLengthCm] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
   const sustainable = isSustainable(categoryTag);
   const disabled = suspended || sending;
+  const variantLabel = axis === "Outro" ? axisCustom.trim() || "Variação" : axis;
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+    };
+  }, []);
+
   const biocoinPreview = useMemo(() => {
-    const price = Math.max(0, parseMoney(priceBrl) - parseMoney(promo));
-    const percent = Math.min(100, Math.max(0, Number(biocoinPercent) || 0));
+    const price = Math.max(0, parseMoneyBrl(priceBrl) - parseMoneyBrl(promo));
+    const percent = Math.min(100, Math.max(0, Number(sanitizePercentInput(biocoinPercent) || "0")));
     const biocoins = Math.floor(price * percent);
-    return biocoins;
+    return { biocoins, brl: biocoins / 100 };
   }, [biocoinPercent, priceBrl, promo]);
+
+  function clearField(key: string) {
+    setFieldErrors((current) => {
+      if (!current[key]) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+  }
+
+  function inputClass(key: string) {
+    return fieldErrors[key] ? "input error-input" : "input";
+  }
+
+  function validate() {
+    const errors: FieldErrors = {};
+    if (!name.trim()) errors.name = "Informe o nome do produto.";
+    if (!description.trim()) errors.description = "Informe a descrição.";
+    if (!categoryTag.trim()) errors.categoryTag = "Selecione uma categoria.";
+
+    const price = parseMoneyBrl(priceBrl);
+    if (!priceBrl.trim() || price <= 0) {
+      errors.priceBrl = "Informe um preço válido maior que zero.";
+    }
+
+    const promoValue = parseMoneyBrl(promo);
+    if (promoValue < 0) errors.promoDiscountBrl = "Desconto promocional inválido.";
+    if (promoValue > price) {
+      errors.promoDiscountBrl = "O desconto promocional não pode exceder o preço.";
+    }
+
+    const percent = Number(sanitizePercentInput(biocoinPercent) || "0");
+    if (percent > 100) errors.biocoinPercent = "Use um percentual entre 0 e 100.";
+
+    if (stock.trim() && !/^\d+$/.test(stock.trim())) {
+      errors.stock = "Estoque deve ser um número inteiro.";
+    }
+    for (const field of [weightG, heightCm, widthCm, lengthCm]) {
+      if (field.trim() && !/^\d+$/.test(field.trim())) {
+        errors.dimensions = "Peso e dimensões aceitam somente números.";
+        break;
+      }
+    }
+    return errors;
+  }
+
+  function addImages(files: FileList | null) {
+    if (!files?.length) return;
+    const next = Array.from(files).map((file) => ({
+      id: nextId("img"),
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+    setImages((current) => {
+      const room = Math.max(0, 8 - current.length);
+      next.slice(room).forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      return [...current, ...next.slice(0, room)];
+    });
+  }
+
+  function removeImage(id: string) {
+    setImages((current) => {
+      const target = current.find((image) => image.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return current.filter((image) => image.id !== id);
+    });
+  }
+
+  function resetForm() {
+    setImages((current) => {
+      current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      return [];
+    });
+    setName("");
+    setDescription("");
+    setCategoryTag(LISTING_CATEGORIES[0]);
+    setPriceBrl("");
+    setPromo("");
+    setBiocoinPercent("0%");
+    setHighlights("");
+    setMaterial("");
+    setMaterialOther("");
+    setMaterialOrigin("");
+    setPackaging("");
+    setCertification("");
+    setHasVariants(false);
+    setAxis("Cor");
+    setAxisCustom("");
+    setOptions([createOption("Cor")]);
+    setQuickSpecs([{ id: nextId("qs"), label: "Material", value: "" }]);
+    setSpecGroups([initialSpecGroup()]);
+    setStock("");
+    setWeightG("");
+    setHeightCm("");
+    setWidthCm("");
+    setLengthCm("");
+    setFieldErrors({});
+  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     if (!token || disabled) return;
-    const price = parseMoney(priceBrl);
-    const discount = parseMoney(promo);
-    if (name.trim().length < 2) {
-      setError("Informe o nome do produto.");
-      return;
-    }
-    if (description.trim().length < 10) {
-      setError("Informe a descrição.");
-      return;
-    }
-    if (price <= 0) {
-      setError("Informe um preço válido maior que zero.");
-      return;
-    }
-    if (discount > price) {
-      setError("O desconto promocional não pode exceder o preço.");
-      return;
-    }
-    const percent = Number(biocoinPercent);
-    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
-      setError("Use um percentual de biocoins entre 0 e 100.");
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) {
+      setError("Corrija os campos destacados antes de salvar.");
       return;
     }
 
     setSending(true);
     setError(null);
-    const variantLabel = axis === "Outro" ? axisCustom.trim() || "Variação" : axis;
     void createSellerProduct(token, {
       name,
       description,
       categoryTag,
       priceBrl,
       creditsDiscount: promo,
-      biocoinDiscountPercent: biocoinPercent,
+      biocoinDiscountPercent: sanitizePercentInput(biocoinPercent) || "0",
       stockAvailable: stock,
       weightG,
       heightCm,
       widthCm,
       lengthCm,
-      images,
+      images: images.map((image) => image.file),
       storefront: {
         highlights: highlights
           .split("\n")
@@ -190,12 +307,7 @@ export function SellerListingForm({
     })
       .then((product) => {
         onCreated(product);
-        setName("");
-        setDescription("");
-        setPriceBrl("");
-        setPromo("");
-        setHighlights("");
-        setImages([]);
+        resetForm();
       })
       .catch((cause: unknown) => {
         setError(cause instanceof Error ? cause.message : "Não foi possível criar o anúncio.");
@@ -214,7 +326,11 @@ export function SellerListingForm({
               label="Nome do produto"
               value={name}
               maxLength={255}
-              onChange={(event) => setName(event.target.value)}
+              error={fieldErrors.name}
+              onChange={(event) => {
+                setName(event.target.value);
+                clearField("name");
+              }}
               disabled={disabled}
             />
           </div>
@@ -224,12 +340,18 @@ export function SellerListingForm({
             </label>
             <textarea
               id="listing-description"
-              className="input input-area"
+              className={`${inputClass("description")} input-area`}
               value={description}
               maxLength={4000}
-              onChange={(event) => setDescription(event.target.value)}
+              onChange={(event) => {
+                setDescription(event.target.value);
+                clearField("description");
+              }}
               disabled={disabled}
             />
+            {fieldErrors.description ? (
+              <p className="error-legend">{fieldErrors.description}</p>
+            ) : null}
           </div>
           <div className="field-group">
             <label className="field-label" htmlFor="listing-category">
@@ -237,45 +359,90 @@ export function SellerListingForm({
             </label>
             <select
               id="listing-category"
-              className="input select-input"
+              className={`${inputClass("categoryTag")} select-input`}
               value={categoryTag}
-              onChange={(event) => setCategoryTag(event.target.value)}
+              onChange={(event) => {
+                setCategoryTag(event.target.value);
+                clearField("categoryTag");
+              }}
               disabled={disabled}
             >
-              {CATEGORIES.map((category) => (
+              {LISTING_CATEGORIES.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>
               ))}
             </select>
+            {fieldErrors.categoryTag ? (
+              <p className="error-legend">{fieldErrors.categoryTag}</p>
+            ) : null}
           </div>
-          <FormTextField
-            id="listing-price"
-            label="Preço de venda (R$)"
-            inputMode="decimal"
-            placeholder="0,00"
-            value={priceBrl}
-            onChange={(event) => setPriceBrl(event.target.value)}
-            disabled={disabled}
-          />
-          <FormTextField
-            id="listing-promo"
-            label="Desconto promocional (R$)"
-            inputMode="decimal"
-            hint="Valor fixo já aplicado na vitrine, antes das biocoins no checkout."
-            value={promo}
-            onChange={(event) => setPromo(event.target.value)}
-            disabled={disabled}
-          />
-          <FormTextField
-            id="listing-biocoin"
-            label="Desconto máximo com biocoins (%)"
-            inputMode="numeric"
-            hint={`1 biocoin = R$ 0,01 · até ${biocoinPreview} biocoins sobre o preço após a promoção.`}
-            value={biocoinPercent}
-            onChange={(event) => setBiocoinPercent(event.target.value.replace(/[^\d]/g, ""))}
-            disabled={disabled}
-          />
+          <div className="field-group">
+            <label className="field-label" htmlFor="listing-price">
+              Preço de venda (R$)
+            </label>
+            <input
+              id="listing-price"
+              className={inputClass("priceBrl")}
+              inputMode="decimal"
+              value={priceBrl}
+              onChange={(event) => {
+                setPriceBrl(formatPriceMaskFromDigits(event.target.value));
+                clearField("priceBrl");
+              }}
+              disabled={disabled}
+            />
+            {fieldErrors.priceBrl ? (
+              <p className="error-legend">{fieldErrors.priceBrl}</p>
+            ) : (
+              <p className="field-hint">Exibido no app: {formatBrl(parseMoneyBrl(priceBrl))}</p>
+            )}
+          </div>
+          <div className="field-group">
+            <label className="field-label" htmlFor="listing-promo">
+              Desconto promocional (R$)
+            </label>
+            <input
+              id="listing-promo"
+              className={inputClass("promoDiscountBrl")}
+              inputMode="decimal"
+              value={promo}
+              onChange={(event) => {
+                setPromo(formatPriceMaskFromDigits(event.target.value));
+                clearField("promoDiscountBrl");
+              }}
+              disabled={disabled}
+            />
+            {fieldErrors.promoDiscountBrl ? (
+              <p className="error-legend">{fieldErrors.promoDiscountBrl}</p>
+            ) : null}
+            <p className="field-hint">
+              Valor fixo já aplicado na vitrine (antes das biocoins no checkout).
+            </p>
+          </div>
+          <div className="field-group">
+            <label className="field-label" htmlFor="listing-biocoin">
+              Desconto máximo com biocoins (%)
+            </label>
+            <input
+              id="listing-biocoin"
+              className={inputClass("biocoinPercent")}
+              inputMode="numeric"
+              value={biocoinPercent}
+              onChange={(event) => {
+                setBiocoinPercent(formatPercentInputDisplay(event.target.value));
+                clearField("biocoinPercent");
+              }}
+              disabled={disabled}
+            />
+            {fieldErrors.biocoinPercent ? (
+              <p className="error-legend">{fieldErrors.biocoinPercent}</p>
+            ) : null}
+            <p className="field-hint">
+              1 biocoin = R$ 0,01 · até <strong>{biocoinPreview.biocoins} biocoins</strong> (
+              {formatBrl(biocoinPreview.brl)}) sobre o preço após a promoção.
+            </p>
+          </div>
           <div className="field-group sm:col-span-2">
             <label className="field-label" htmlFor="listing-highlights">
               Destaques (um por linha)
@@ -293,23 +460,52 @@ export function SellerListingForm({
 
       <section>
         <h2 className="text-xs font-semibold uppercase tracking-wide text-text">Fotos do produto</h2>
-        <p className="field-hint mt-1">JPG, PNG ou WEBP. A primeira imagem vira a capa.</p>
-        <input
-          className="mt-3 block text-sm text-text"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          disabled={disabled}
-          onChange={(event) => setImages(Array.from(event.target.files ?? []).slice(0, 8))}
-        />
-        {images.length ? (
-          <p className="mt-2 text-sm text-text">{images.length} imagem(ns) pronta(s) para envio.</p>
-        ) : null}
+        <p className="field-hint mt-1">
+          JPG, PNG ou WEBP. A primeira imagem vira a capa. Até 8 fotos.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          {images.map((image) => (
+            <div
+              key={image.id}
+              className="relative h-24 w-24 overflow-hidden rounded-lg border border-dashed border-accent"
+            >
+              <img src={image.previewUrl} alt="" className="h-full w-full object-cover" />
+              <span className="absolute bottom-0 left-0 right-0 bg-accent/90 px-1 py-0.5 text-center text-[10px] font-semibold text-white">
+                Pendente
+              </span>
+              <button
+                type="button"
+                className="absolute right-1 top-1 rounded bg-black/60 p-1 text-white"
+                onClick={() => removeImage(image.id)}
+                aria-label="Remover imagem"
+                disabled={disabled}
+              >
+                <FiTrash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <label className="button button-outline mt-3 inline-flex w-auto cursor-pointer px-4 text-sm">
+          Adicionar imagens
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="sr-only"
+            disabled={disabled || images.length >= 8}
+            onChange={(event) => {
+              addImages(event.target.files);
+              event.target.value = "";
+            }}
+          />
+        </label>
       </section>
 
       {sustainable ? (
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-text">Sustentabilidade</h2>
+        <section className="rounded-[10px] border border-accent/30 bg-accent/5 p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-title">
+            Sustentabilidade
+          </h2>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             <div className="field-group">
               <label className="field-label" htmlFor="listing-material">
@@ -323,7 +519,7 @@ export function SellerListingForm({
                 disabled={disabled}
               >
                 <option value="">Selecione</option>
-                {MATERIALS.map((option) => (
+                {SUSTAINABLE_MATERIAL_OPTIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -381,82 +577,206 @@ export function SellerListingForm({
         </div>
         {hasVariants ? (
           <div className="mt-3 space-y-3">
-            <div className="field-group max-w-xs">
+            <div className="field-group max-w-md">
               <label className="field-label" htmlFor="listing-axis">
-                Eixo
+                Tipo de variação
               </label>
               <select
                 id="listing-axis"
                 className="input select-input"
                 value={axis}
-                onChange={(event) => setAxis(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value as (typeof VARIANT_AXIS_PRESETS)[number];
+                  setAxis(next);
+                  if (next !== "Outro") setAxisCustom("");
+                  setOptions([createOption(next)]);
+                }}
                 disabled={disabled}
               >
-                <option value="Cor">Cor</option>
-                <option value="Dimensão">Dimensão</option>
-                <option value="Outro">Outro</option>
+                {VARIANT_AXIS_PRESETS.map((preset) => (
+                  <option key={preset} value={preset}>
+                    {preset}
+                  </option>
+                ))}
               </select>
+              {axis === "Outro" ? (
+                <input
+                  className="input mt-2"
+                  placeholder="Ex.: Material, Acabamento"
+                  value={axisCustom}
+                  onChange={(event) => setAxisCustom(event.target.value)}
+                  disabled={disabled}
+                />
+              ) : (
+                <p className="field-hint mt-1">
+                  Eixo salvo no app: <strong>{variantLabel}</strong>
+                  {axis === "Dimensão" ? (
+                    <> · Cada opção é uma medida (ex.: Diâmetro 1,75 mm).</>
+                  ) : null}
+                </p>
+              )}
             </div>
-            {axis === "Outro" ? (
-              <FormTextField
-                id="listing-axis-custom"
-                label="Nome da variação"
-                value={axisCustom}
-                onChange={(event) => setAxisCustom(event.target.value)}
-                disabled={disabled}
-              />
-            ) : null}
-            {options.map((option) => (
-              <div key={option.id} className="flex flex-wrap items-end gap-3">
-                <div className="min-w-[12rem] flex-1">
-                  <FormTextField
-                    id={`opt-${option.id}`}
-                    label="Nome da opção"
-                    value={option.name}
-                    onChange={(event) =>
-                      setOptions((current) =>
-                        current.map((item) =>
-                          item.id === option.id ? { ...item, name: event.target.value } : item
-                        )
-                      )
-                    }
-                    disabled={disabled}
-                  />
-                </div>
+            {options.map((option, index) => (
+              <div key={option.id} className="flex flex-wrap items-end gap-2">
                 {axis === "Cor" ? (
-                  <label className="field-group">
-                    <span className="field-label">Amostra</span>
+                  <>
+                    <div className="field-group min-w-[200px] flex-1">
+                      <label className="field-label">Paleta</label>
+                      <select
+                        className="input select-input"
+                        value={paletteSelectValueForHex(option.swatchColor)}
+                        disabled={disabled}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (value === COLOR_PALETTE_CUSTOM_VALUE) return;
+                          const resolved = resolveColorVariantFromHex(value);
+                          setOptions((current) =>
+                            current.map((row, rowIndex) =>
+                              rowIndex === index
+                                ? { ...row, swatchColor: resolved.hex, name: resolved.name }
+                                : row
+                            )
+                          );
+                        }}
+                      >
+                        <option value={COLOR_PALETTE_CUSTOM_VALUE}>Personalizada…</option>
+                        {COLOR_SWATCH_PRESETS.map((preset) => (
+                          <option key={preset.name} value={normalizeHex(preset.hex)}>
+                            {preset.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field-group w-28 shrink-0">
+                      <label className="field-label">Amostra</label>
+                      <input
+                        type="color"
+                        className="h-14 w-full cursor-pointer rounded-lg border border-edge bg-body"
+                        value={normalizeHex(option.swatchColor)}
+                        disabled={disabled}
+                        onChange={(event) => {
+                          const resolved = resolveColorVariantFromHex(event.target.value);
+                          setOptions((current) =>
+                            current.map((row, rowIndex) =>
+                              rowIndex === index
+                                ? { ...row, swatchColor: resolved.hex, name: resolved.name }
+                                : row
+                            )
+                          );
+                        }}
+                      />
+                    </div>
+                  </>
+                ) : axis === "Dimensão" ? (
+                  <div className="field-group min-w-[320px] flex-1">
+                    <label className="field-label">Dimensão</label>
+                    <div className="flex flex-wrap gap-2">
+                      <select
+                        className="input select-input w-40 shrink-0"
+                        value={option.dimensionLabel ?? DIMENSION_VARIANT_LABELS[0]}
+                        disabled={disabled}
+                        onChange={(event) =>
+                          setOptions((current) =>
+                            current.map((row, rowIndex) =>
+                              rowIndex === index
+                                ? withDimension(row, {
+                                    dimensionLabel: event.target.value,
+                                    dimensionAmount: row.dimensionAmount ?? "",
+                                    dimensionUnit: row.dimensionUnit ?? LENGTH_DIMENSION_UNITS[0],
+                                  })
+                                : row
+                            )
+                          )
+                        }
+                      >
+                        {DIMENSION_VARIANT_LABELS.map((label) => (
+                          <option key={label} value={label}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className="input w-24 shrink-0"
+                        inputMode="decimal"
+                        value={option.dimensionAmount ?? ""}
+                        placeholder="1,75"
+                        disabled={disabled}
+                        onChange={(event) =>
+                          setOptions((current) =>
+                            current.map((row, rowIndex) =>
+                              rowIndex === index
+                                ? withDimension(row, {
+                                    dimensionLabel: row.dimensionLabel ?? DIMENSION_VARIANT_LABELS[0],
+                                    dimensionAmount: event.target.value,
+                                    dimensionUnit: row.dimensionUnit ?? LENGTH_DIMENSION_UNITS[0],
+                                  })
+                                : row
+                            )
+                          )
+                        }
+                      />
+                      <select
+                        className="input select-input w-24 shrink-0"
+                        value={option.dimensionUnit ?? LENGTH_DIMENSION_UNITS[0]}
+                        disabled={disabled}
+                        onChange={(event) =>
+                          setOptions((current) =>
+                            current.map((row, rowIndex) =>
+                              rowIndex === index
+                                ? withDimension(row, {
+                                    dimensionLabel: row.dimensionLabel ?? DIMENSION_VARIANT_LABELS[0],
+                                    dimensionAmount: row.dimensionAmount ?? "",
+                                    dimensionUnit: event.target.value,
+                                  })
+                                : row
+                            )
+                          )
+                        }
+                      >
+                        {LENGTH_DIMENSION_UNITS.map((unit) => (
+                          <option key={unit} value={unit}>
+                            {unit}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="field-group min-w-[160px] flex-1">
+                    <label className="field-label">Nome da opção</label>
                     <input
-                      type="color"
-                      className="h-14 w-14 cursor-pointer rounded-[9px] border border-edge bg-body"
-                      value={option.swatchColor}
+                      className="input"
+                      value={option.name}
+                      placeholder="Ex.: Fosco, PLA+"
+                      disabled={disabled}
                       onChange={(event) =>
                         setOptions((current) =>
-                          current.map((item) =>
-                            item.id === option.id
-                              ? { ...item, swatchColor: event.target.value }
-                              : item
+                          current.map((row, rowIndex) =>
+                            rowIndex === index ? { ...row, name: event.target.value } : row
                           )
                         )
                       }
-                      disabled={disabled}
                     />
-                  </label>
-                ) : null}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="mb-1 rounded-lg border border-edge p-3 text-text disabled:opacity-40"
+                  disabled={disabled || options.length <= 1}
+                  aria-label="Remover opção"
+                  onClick={() => setOptions((current) => current.filter((_, rowIndex) => rowIndex !== index))}
+                >
+                  <FiTrash2 />
+                </button>
               </div>
             ))}
             <button
               type="button"
-              className="text-sm font-semibold text-accent"
-              onClick={() =>
-                setOptions((current) => [
-                  ...current,
-                  { id: nextId("opt"), name: "", swatchColor: "#05f283" },
-                ])
-              }
+              className="inline-flex items-center gap-2 text-sm font-semibold text-accent"
               disabled={disabled}
+              onClick={() => setOptions((current) => [...current, createOption(axis, current.length)])}
             >
-              Adicionar opção
+              <FiPlus /> Adicionar opção
             </button>
           </div>
         ) : null}
@@ -464,149 +784,189 @@ export function SellerListingForm({
 
       <section>
         <h2 className="text-xs font-semibold uppercase tracking-wide text-text">Ficha rápida</h2>
-        <div className="mt-3 space-y-3">
+        <div className="mt-3 space-y-2">
           {quickSpecs.map((row) => (
-            <div key={row.id} className="grid gap-3 sm:grid-cols-[12rem_1fr_auto]">
-              <select
-                className="input select-input"
+            <div key={row.id} className="flex flex-wrap items-start gap-2">
+              <AttributeLabelSelect
                 value={row.label}
-                onChange={(event) =>
+                presets={QUICK_SPEC_LABELS}
+                disabled={disabled}
+                onChange={(label) =>
                   setQuickSpecs((current) =>
-                    current.map((item) =>
-                      item.id === row.id ? { ...item, label: event.target.value } : item
-                    )
+                    current.map((item) => {
+                      if (item.id !== row.id) return item;
+                      return {
+                        ...item,
+                        label,
+                        value: shouldClearSpecValueOnLabelChange(item.label, label) ? "" : item.value,
+                      };
+                    })
                   )
                 }
-                disabled={disabled}
-              >
-                {QUICK_LABELS.map((label) => (
-                  <option key={label} value={label}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <input
-                className="input"
+              />
+              <AttributeValueField
+                label={row.label.trim() || "Material"}
                 value={row.value}
-                onChange={(event) =>
+                disabled={disabled}
+                onChange={(value) =>
                   setQuickSpecs((current) =>
-                    current.map((item) =>
-                      item.id === row.id ? { ...item, value: event.target.value } : item
-                    )
+                    current.map((item) => (item.id === row.id ? { ...item, value } : item))
                   )
                 }
-                disabled={disabled}
               />
               <button
                 type="button"
-                className="text-sm text-text"
-                onClick={() => setQuickSpecs((current) => current.filter((item) => item.id !== row.id))}
+                className="rounded-lg border border-edge px-3 py-2.5"
+                aria-label="Remover linha"
                 disabled={disabled}
+                onClick={() => setQuickSpecs((current) => current.filter((item) => item.id !== row.id))}
               >
-                Remover
+                <FiTrash2 />
               </button>
             </div>
           ))}
           <button
             type="button"
-            className="text-sm font-semibold text-accent"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-accent"
+            disabled={disabled}
             onClick={() =>
               setQuickSpecs((current) => [...current, { id: nextId("qs"), label: "Material", value: "" }])
             }
-            disabled={disabled}
           >
-            Linha da ficha rápida
+            <FiPlus /> Linha da ficha rápida
           </button>
         </div>
       </section>
 
       <section>
         <h2 className="text-xs font-semibold uppercase tracking-wide text-text">Especificações</h2>
-        <div className="mt-3 space-y-5">
-          {specGroups.map((group) => (
-            <div key={group.id} className="space-y-3">
-              <FormTextField
-                id={`group-${group.id}`}
-                label="Grupo"
-                value={group.group}
-                onChange={(event) =>
-                  setSpecGroups((current) =>
-                    current.map((item) =>
-                      item.id === group.id ? { ...item, group: event.target.value } : item
-                    )
-                  )
-                }
-                disabled={disabled}
-              />
-              {group.items.map((row) => (
-                <div key={row.id} className="grid gap-3 sm:grid-cols-[12rem_1fr]">
-                  <select
-                    className="input select-input"
-                    value={row.label}
-                    onChange={(event) =>
-                      setSpecGroups((current) =>
-                        current.map((item) =>
-                          item.id === group.id
-                            ? {
-                                ...item,
-                                items: item.items.map((spec) =>
-                                  spec.id === row.id ? { ...spec, label: event.target.value } : spec
-                                ),
-                              }
-                            : item
-                        )
-                      )
-                    }
-                    disabled={disabled}
-                  >
-                    {SPEC_LABELS.map((label) => (
-                      <option key={label} value={label}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
+        <div className="mt-3 space-y-4">
+          {specGroups.map((group) => {
+            const titleLocked = group.locked || isGroupLockedTitle(group.group);
+            return (
+              <div key={group.id} className="rounded-[10px] border border-edge p-3">
+                {titleLocked ? (
+                  <p className="mb-3 text-sm font-semibold text-text">{group.group}</p>
+                ) : (
                   <input
-                    className="input"
-                    value={row.value}
+                    className="input mb-2"
+                    value={group.group}
+                    disabled={disabled}
                     onChange={(event) =>
                       setSpecGroups((current) =>
                         current.map((item) =>
-                          item.id === group.id
-                            ? {
-                                ...item,
-                                items: item.items.map((spec) =>
-                                  spec.id === row.id ? { ...spec, value: event.target.value } : spec
-                                ),
-                              }
-                            : item
+                          item.id === group.id ? { ...item, group: event.target.value } : item
                         )
                       )
                     }
-                    disabled={disabled}
                   />
-                </div>
-              ))}
-              <button
-                type="button"
-                className="text-sm font-semibold text-accent"
-                onClick={() =>
-                  setSpecGroups((current) =>
-                    current.map((item) =>
-                      item.id === group.id
-                        ? {
-                            ...item,
-                            items: [...item.items, { id: nextId("spec"), label: "Material", value: "" }],
-                          }
-                        : item
+                )}
+                {group.items.map((row) => (
+                  <div key={row.id} className="mb-2 flex flex-wrap gap-2">
+                    <AttributeLabelSelect
+                      value={row.label}
+                      presets={SPEC_LABELS}
+                      disabled={disabled}
+                      onChange={(label) =>
+                        setSpecGroups((current) =>
+                          current.map((item) =>
+                            item.id === group.id
+                              ? {
+                                  ...item,
+                                  items: item.items.map((spec) => {
+                                    if (spec.id !== row.id) return spec;
+                                    return {
+                                      ...spec,
+                                      label,
+                                      value: shouldClearSpecValueOnLabelChange(spec.label, label)
+                                        ? ""
+                                        : spec.value,
+                                    };
+                                  }),
+                                }
+                              : item
+                          )
+                        )
+                      }
+                    />
+                    <AttributeValueField
+                      label={row.label.trim() || "Material"}
+                      value={row.value}
+                      disabled={disabled}
+                      onChange={(value) =>
+                        setSpecGroups((current) =>
+                          current.map((item) =>
+                            item.id === group.id
+                              ? {
+                                  ...item,
+                                  items: item.items.map((spec) =>
+                                    spec.id === row.id ? { ...spec, value } : spec
+                                  ),
+                                }
+                              : item
+                          )
+                        )
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="rounded-lg border border-edge px-3 py-2.5"
+                      aria-label="Remover item"
+                      disabled={disabled}
+                      onClick={() =>
+                        setSpecGroups((current) =>
+                          current.map((item) =>
+                            item.id === group.id
+                              ? { ...item, items: item.items.filter((spec) => spec.id !== row.id) }
+                              : item
+                          )
+                        )
+                      }
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-accent"
+                  disabled={disabled}
+                  onClick={() =>
+                    setSpecGroups((current) =>
+                      current.map((item) =>
+                        item.id === group.id
+                          ? {
+                              ...item,
+                              items: [...item.items, { id: nextId("spec"), label: "Material", value: "" }],
+                            }
+                          : item
+                      )
                     )
-                  )
-                }
-                disabled={disabled}
-              >
-                Linha de especificação
-              </button>
-            </div>
-          ))}
+                  }
+                >
+                  + Item
+                </button>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-accent"
+            disabled={disabled}
+            onClick={() =>
+              setSpecGroups((current) => [
+                ...current,
+                {
+                  id: nextId("grp"),
+                  group: "Informações gerais",
+                  locked: true,
+                  items: [{ id: nextId("spec"), label: "Material", value: "" }],
+                },
+              ])
+            }
+          >
+            <FiPlus /> Grupo de especificações
+          </button>
         </div>
       </section>
 
@@ -616,14 +976,23 @@ export function SellerListingForm({
           Peso e dimensões entram na cotação de frete. Se ainda forem estimados, pode deixar em branco.
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <FormTextField
-            id="listing-stock"
-            label="Estoque disponível"
-            inputMode="numeric"
-            value={stock}
-            onChange={(event) => setStock(event.target.value.replace(/\D/g, ""))}
-            disabled={disabled}
-          />
+          <div className="field-group">
+            <label className="field-label" htmlFor="listing-stock">
+              Estoque disponível
+            </label>
+            <input
+              id="listing-stock"
+              className={inputClass("stock")}
+              inputMode="numeric"
+              value={stock}
+              onChange={(event) => {
+                setStock(event.target.value.replace(/\D/g, ""));
+                clearField("stock");
+              }}
+              disabled={disabled}
+            />
+            {fieldErrors.stock ? <p className="error-legend">{fieldErrors.stock}</p> : null}
+          </div>
           <FormTextField
             id="listing-weight"
             label="Peso (g) — opcional"
@@ -656,6 +1025,9 @@ export function SellerListingForm({
             onChange={(event) => setLengthCm(event.target.value.replace(/\D/g, ""))}
             disabled={disabled}
           />
+          {fieldErrors.dimensions ? (
+            <p className="error-legend sm:col-span-2">{fieldErrors.dimensions}</p>
+          ) : null}
         </div>
       </section>
 
