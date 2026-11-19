@@ -33,6 +33,14 @@ export function shouldClearSpecValueOnLabelChange(prevLabel: string, nextLabel: 
   return specLabelValueKind(prevLabel) !== specLabelValueKind(nextLabel);
 }
 
+export function sanitizeDecimalAmount(raw: string) {
+  const match = raw.replace(/[^\d,.]/g, "").match(/^(\d*)([,.])?(\d*)/);
+  if (!match) return "";
+  const separator = match[2] ?? "";
+  if (!separator) return match[1];
+  return `${match[1]}${separator}${match[3] ?? ""}`;
+}
+
 function splitValueWithUnit(value: string, units: readonly string[]) {
   for (const unit of units) {
     const re = new RegExp(`\\s*${unit.replace(".", "\\.")}\\s*$`, "i");
@@ -104,12 +112,16 @@ export function AttributeValueField({ label, value, onChange, disabled }: FieldP
     );
   }
 
+  const numeric = label === "Temperatura do bico" || label === "Temperatura da mesa";
   return (
     <input
       className="input input-grow"
+      inputMode={numeric ? "decimal" : undefined}
       value={value}
       disabled={disabled}
-      onChange={(event) => onChange(event.target.value)}
+      onChange={(event) =>
+        onChange(numeric ? sanitizeDecimalAmount(event.target.value) : event.target.value)
+      }
     />
   );
 }
@@ -198,7 +210,9 @@ function UnitValueField({
         inputMode="decimal"
         value={parsed.amount}
         disabled={disabled}
-        onChange={(event) => onChange(`${event.target.value.trim()} ${parsed.unit}`.trim())}
+        onChange={(event) =>
+          onChange(`${sanitizeDecimalAmount(event.target.value)} ${parsed.unit}`.trim())
+        }
       />
       <select
         className="input select-input input-unit"

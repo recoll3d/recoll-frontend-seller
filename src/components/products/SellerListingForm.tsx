@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 
 import {
@@ -20,12 +20,12 @@ import {
   resolveColorVariantFromHex,
 } from "../../utils/colorNameFromHex";
 import { formatBrl, formatPriceMaskFromDigits, parseMoneyBrl } from "../../utils/moneyBrl";
-import { formatPercentInputDisplay, sanitizePercentInput } from "../../utils/sanitizePercentInput";
 import { FormTextField } from "../forms/FormTextField";
 import {
   AttributeLabelSelect,
   AttributeValueField,
   nextAttributeValue,
+  sanitizeDecimalAmount,
 } from "./ListingAttributeFields";
 
 type Row = { id: string; label: string; value: string };
@@ -103,7 +103,6 @@ export function SellerListingForm({
   const [categoryTag, setCategoryTag] = useState<string>(LISTING_CATEGORIES[0]);
   const [priceBrl, setPriceBrl] = useState("");
   const [promo, setPromo] = useState("");
-  const [biocoinPercent, setBiocoinPercent] = useState("0%");
   const [highlights, setHighlights] = useState("");
   const [images, setImages] = useState<PendingImage[]>([]);
   const [material, setMaterial] = useState("");
@@ -140,13 +139,6 @@ export function SellerListingForm({
     };
   }, []);
 
-  const biocoinPreview = useMemo(() => {
-    const price = Math.max(0, parseMoneyBrl(priceBrl) - parseMoneyBrl(promo));
-    const percent = Math.min(100, Math.max(0, Number(sanitizePercentInput(biocoinPercent) || "0")));
-    const biocoins = Math.floor(price * percent);
-    return { biocoins, brl: biocoins / 100 };
-  }, [biocoinPercent, priceBrl, promo]);
-
   function clearField(key: string) {
     setFieldErrors((current) => {
       if (!current[key]) return current;
@@ -176,9 +168,6 @@ export function SellerListingForm({
     if (promoValue > price) {
       errors.promoDiscountBrl = "O desconto promocional não pode exceder o preço.";
     }
-
-    const percent = Number(sanitizePercentInput(biocoinPercent) || "0");
-    if (percent > 100) errors.biocoinPercent = "Use um percentual entre 0 e 100.";
 
     if (stock.trim() && !/^\d+$/.test(stock.trim())) {
       errors.stock = "Estoque deve ser um número inteiro.";
@@ -224,7 +213,6 @@ export function SellerListingForm({
     setCategoryTag(LISTING_CATEGORIES[0]);
     setPriceBrl("");
     setPromo("");
-    setBiocoinPercent("0%");
     setHighlights("");
     setMaterial("");
     setMaterialOther("");
@@ -263,7 +251,7 @@ export function SellerListingForm({
       categoryTag,
       priceBrl,
       creditsDiscount: promo,
-      biocoinDiscountPercent: sanitizePercentInput(biocoinPercent) || "0",
+      biocoinDiscountPercent: "0",
       stockAvailable: stock,
       weightG,
       heightCm,
@@ -417,30 +405,7 @@ export function SellerListingForm({
               <p className="error-legend">{fieldErrors.promoDiscountBrl}</p>
             ) : null}
             <p className="field-hint">
-              Valor fixo já aplicado na vitrine (antes das biocoins no checkout).
-            </p>
-          </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="listing-biocoin">
-              Desconto máximo com biocoins (%)
-            </label>
-            <input
-              id="listing-biocoin"
-              className={inputClass("biocoinPercent")}
-              inputMode="numeric"
-              value={biocoinPercent}
-              onChange={(event) => {
-                setBiocoinPercent(formatPercentInputDisplay(event.target.value));
-                clearField("biocoinPercent");
-              }}
-              disabled={disabled}
-            />
-            {fieldErrors.biocoinPercent ? (
-              <p className="error-legend">{fieldErrors.biocoinPercent}</p>
-            ) : null}
-            <p className="field-hint">
-              1 biocoin = R$ 0,01 · até <strong>{biocoinPreview.biocoins} biocoins</strong> (
-              {formatBrl(biocoinPreview.brl)}) sobre o preço após a promoção.
+              Valor fixo já aplicado na vitrine, antes do checkout.
             </p>
           </div>
           <div className="field-group sm:col-span-2">
@@ -707,7 +672,7 @@ export function SellerListingForm({
                               rowIndex === index
                                 ? withDimension(row, {
                                     dimensionLabel: row.dimensionLabel ?? DIMENSION_VARIANT_LABELS[0],
-                                    dimensionAmount: event.target.value,
+                                    dimensionAmount: sanitizeDecimalAmount(event.target.value),
                                     dimensionUnit: row.dimensionUnit ?? LENGTH_DIMENSION_UNITS[0],
                                   })
                                 : row
@@ -845,22 +810,34 @@ export function SellerListingForm({
             const titleLocked = group.locked || isGroupLockedTitle(group.group);
             return (
               <div key={group.id} className="rounded-[10px] border border-edge p-3">
-                {titleLocked ? (
-                  <p className="mb-3 text-sm font-semibold text-text">{group.group}</p>
-                ) : (
-                  <input
-                    className="input mb-2"
-                    value={group.group}
-                    disabled={disabled}
-                    onChange={(event) =>
-                      setSpecGroups((current) =>
-                        current.map((item) =>
-                          item.id === group.id ? { ...item, group: event.target.value } : item
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  {titleLocked ? (
+                    <p className="text-sm font-semibold text-text">{group.group}</p>
+                  ) : (
+                    <input
+                      className="input"
+                      value={group.group}
+                      disabled={disabled}
+                      onChange={(event) =>
+                        setSpecGroups((current) =>
+                          current.map((item) =>
+                            item.id === group.id ? { ...item, group: event.target.value } : item
+                          )
                         )
-                      )
+                      }
+                    />
+                  )}
+                  <button
+                    type="button"
+                    className="shrink-0 text-sm font-semibold text-text hover:text-title"
+                    disabled={disabled}
+                    onClick={() =>
+                      setSpecGroups((current) => current.filter((item) => item.id !== group.id))
                     }
-                  />
-                )}
+                  >
+                    Remover grupo
+                  </button>
+                </div>
                 {group.items.map((row) => (
                   <div key={row.id} className="mb-2 flex min-w-0 flex-wrap items-end gap-2">
                     <AttributeLabelSelect
