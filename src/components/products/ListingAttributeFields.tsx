@@ -4,13 +4,29 @@ import {
   SPEC_VALUE_OPTIONS,
   WEIGHT_UNITS,
 } from "../../data/listingCatalog";
+import {
+  COLOR_PALETTE_CUSTOM_VALUE,
+  COLOR_SWATCH_PRESETS,
+  normalizeHex,
+  paletteSelectValueForHex,
+  resolveColorVariantFromHex,
+} from "../../utils/colorNameFromHex";
 
 const LENGTH_SPEC_LABELS = new Set(["Altura", "Largura", "Profundidade", "Comprimento"]);
 
 export function specLabelValueKind(label: string) {
+  if (label === "Cor") return "color";
   if (label === "Peso") return "weight";
   if (label === "Diâmetro" || LENGTH_SPEC_LABELS.has(label)) return "length";
   return "text";
+}
+
+export function nextAttributeValue(prevLabel: string, nextLabel: string, prevValue: string) {
+  if (nextLabel.trim() === "Cor") {
+    return prevLabel.trim() === "Cor" && prevValue.trim() ? prevValue : "Preto";
+  }
+  if (shouldClearSpecValueOnLabelChange(prevLabel, nextLabel)) return "";
+  return prevValue;
 }
 
 export function shouldClearSpecValueOnLabelChange(prevLabel: string, nextLabel: string) {
@@ -37,6 +53,10 @@ type FieldProps = {
 export function AttributeValueField({ label, value, onChange, disabled }: FieldProps) {
   const options = SPEC_VALUE_OPTIONS[label];
 
+  if (label === "Cor") {
+    return <ColorValueField value={value} onChange={onChange} disabled={disabled} />;
+  }
+
   if (LENGTH_SPEC_LABELS.has(label)) {
     return <UnitValueField value={value} units={LENGTH_SPEC_UNITS} onChange={onChange} disabled={disabled} />;
   }
@@ -55,9 +75,9 @@ export function AttributeValueField({ label, value, onChange, disabled }: FieldP
     const selectValue = inList ? value : showCustom || value === "" ? "Outro" : value;
 
     return (
-      <div className="flex min-w-[200px] flex-1 flex-col gap-2 sm:flex-row">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row">
         <select
-          className="input select-input flex-1"
+          className="input select-input input-grow"
           value={selectValue}
           disabled={disabled}
           onChange={(event) => {
@@ -73,7 +93,7 @@ export function AttributeValueField({ label, value, onChange, disabled }: FieldP
         </select>
         {selectValue === "Outro" ? (
           <input
-            className="input flex-1"
+            className="input input-grow"
             placeholder="Descreva a opção"
             value={value}
             disabled={disabled}
@@ -86,11 +106,76 @@ export function AttributeValueField({ label, value, onChange, disabled }: FieldP
 
   return (
     <input
-      className="input min-w-[160px] flex-1"
+      className="input input-grow"
       value={value}
       disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
     />
+  );
+}
+
+function storedColor(value: string) {
+  const named = COLOR_SWATCH_PRESETS.find((entry) => entry.name === value.trim());
+  if (named) {
+    const hex = normalizeHex(named.hex);
+    return { hex, select: hex };
+  }
+  if (/^#[0-9a-fA-F]{6}$/.test(value.trim())) {
+    const resolved = resolveColorVariantFromHex(value);
+    return { hex: resolved.hex, select: paletteSelectValueForHex(resolved.hex) };
+  }
+  const fallback = normalizeHex(COLOR_SWATCH_PRESETS[0].hex);
+  return { hex: fallback, select: fallback };
+}
+
+function commitColor(hex: string, onChange: (value: string) => void) {
+  const resolved = resolveColorVariantFromHex(hex);
+  onChange(resolved.name === "Personalizada" ? resolved.hex : resolved.name);
+}
+
+function ColorValueField({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+}) {
+  const color = storedColor(value);
+  return (
+    <div className="flex min-w-0 flex-1 flex-wrap items-end gap-2">
+      <div className="field-group min-w-0 flex-1">
+        <label className="field-label">Paleta</label>
+        <select
+          className="input select-input"
+          value={color.select}
+          disabled={disabled}
+          onChange={(event) => {
+            const next = event.target.value;
+            if (next === COLOR_PALETTE_CUSTOM_VALUE) return;
+            commitColor(next, onChange);
+          }}
+        >
+          <option value={COLOR_PALETTE_CUSTOM_VALUE}>Personalizada…</option>
+          {COLOR_SWATCH_PRESETS.map((preset) => (
+            <option key={preset.name} value={normalizeHex(preset.hex)}>
+              {preset.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field-group w-28 shrink-0">
+        <label className="field-label">Amostra</label>
+        <input
+          type="color"
+          className="block h-14 w-28 cursor-pointer rounded-lg border border-edge bg-body"
+          value={color.hex}
+          disabled={disabled}
+          onChange={(event) => commitColor(event.target.value, onChange)}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -107,15 +192,16 @@ function UnitValueField({
 }) {
   const parsed = splitValueWithUnit(value, units);
   return (
-    <div className="flex min-w-[200px] flex-1 gap-2">
+    <div className="flex min-w-0 flex-1 gap-2">
       <input
-        className="input flex-1"
+        className="input input-grow"
+        inputMode="decimal"
         value={parsed.amount}
         disabled={disabled}
         onChange={(event) => onChange(`${event.target.value.trim()} ${parsed.unit}`.trim())}
       />
       <select
-        className="input select-input w-24 shrink-0"
+        className="input select-input input-unit"
         value={parsed.unit}
         disabled={disabled}
         onChange={(event) => onChange(`${parsed.amount} ${event.target.value}`.trim())}
@@ -141,7 +227,7 @@ export function AttributeLabelSelect({ value, presets, onChange, disabled }: Lab
   const selectValue = presets.includes(value) ? value : "Outro";
 
   return (
-    <div className="flex w-full flex-col gap-2 sm:w-52 sm:shrink-0">
+    <div className="flex w-full shrink-0 flex-col gap-2 sm:w-52">
       <select
         className="input select-input"
         value={selectValue}

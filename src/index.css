@@ -55,6 +55,35 @@
     @apply min-h-14 max-h-14 rounded-[9px] w-full outline-none px-6 text-title placeholder:text-text border border-edge;
     @apply font-medium text-sm sm:text-base bg-body;
   }
+  .input-grow {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 0%;
+  }
+  .input-amount {
+    width: 7.5rem;
+    min-width: 7.5rem;
+    max-width: 7.5rem;
+    flex: 0 0 7.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .input-unit {
+    width: 6.75rem;
+    min-width: 6.75rem;
+    max-width: 6.75rem;
+    flex: 0 0 6.75rem;
+    padding-left: 0.75rem;
+    padding-right: 2.1rem;
+    background-position: right 0.55rem center;
+  }
+  .input-axis {
+    width: 11.5rem;
+    min-width: 11.5rem;
+    max-width: 100%;
+    flex: 0 0 11.5rem;
+    padding-right: 2.75rem;
+  }
   .input-area {
     min-height: 8rem;
     max-height: none;

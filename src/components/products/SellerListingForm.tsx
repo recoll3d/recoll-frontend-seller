@@ -25,7 +25,7 @@ import { FormTextField } from "../forms/FormTextField";
 import {
   AttributeLabelSelect,
   AttributeValueField,
-  shouldClearSpecValueOnLabelChange,
+  nextAttributeValue,
 } from "./ListingAttributeFields";
 
 type Row = { id: string; label: string; value: string };
@@ -617,10 +617,10 @@ export function SellerListingForm({
               )}
             </div>
             {options.map((option, index) => (
-              <div key={option.id} className="flex flex-wrap items-end gap-2">
+              <div key={option.id} className="flex min-w-0 flex-wrap items-end gap-2">
                 {axis === "Cor" ? (
                   <>
-                    <div className="field-group min-w-[200px] flex-1">
+                    <div className="field-group min-w-0 flex-1">
                       <label className="field-label">Paleta</label>
                       <select
                         className="input select-input"
@@ -651,7 +651,7 @@ export function SellerListingForm({
                       <label className="field-label">Amostra</label>
                       <input
                         type="color"
-                        className="h-14 w-full cursor-pointer rounded-lg border border-edge bg-body"
+                        className="block h-14 w-28 cursor-pointer rounded-lg border border-edge bg-body"
                         value={normalizeHex(option.swatchColor)}
                         disabled={disabled}
                         onChange={(event) => {
@@ -668,11 +668,11 @@ export function SellerListingForm({
                     </div>
                   </>
                 ) : axis === "Dimensão" ? (
-                  <div className="field-group min-w-[320px] flex-1">
+                  <div className="field-group min-w-0 flex-1">
                     <label className="field-label">Dimensão</label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex min-w-0 flex-wrap gap-2">
                       <select
-                        className="input select-input w-40 shrink-0"
+                        className="input select-input input-axis"
                         value={option.dimensionLabel ?? DIMENSION_VARIANT_LABELS[0]}
                         disabled={disabled}
                         onChange={(event) =>
@@ -696,7 +696,7 @@ export function SellerListingForm({
                         ))}
                       </select>
                       <input
-                        className="input w-24 shrink-0"
+                        className="input input-amount"
                         inputMode="decimal"
                         value={option.dimensionAmount ?? ""}
                         placeholder="1,75"
@@ -716,7 +716,7 @@ export function SellerListingForm({
                         }
                       />
                       <select
-                        className="input select-input w-24 shrink-0"
+                        className="input select-input input-unit"
                         value={option.dimensionUnit ?? LENGTH_DIMENSION_UNITS[0]}
                         disabled={disabled}
                         onChange={(event) =>
@@ -761,7 +761,7 @@ export function SellerListingForm({
                 )}
                 <button
                   type="button"
-                  className="mb-1 rounded-lg border border-edge p-3 text-text disabled:opacity-40"
+                  className="mb-0 flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-edge text-text disabled:opacity-40"
                   disabled={disabled || options.length <= 1}
                   aria-label="Remover opção"
                   onClick={() => setOptions((current) => current.filter((_, rowIndex) => rowIndex !== index))}
@@ -786,7 +786,7 @@ export function SellerListingForm({
         <h2 className="text-xs font-semibold uppercase tracking-wide text-text">Ficha rápida</h2>
         <div className="mt-3 space-y-2">
           {quickSpecs.map((row) => (
-            <div key={row.id} className="flex flex-wrap items-start gap-2">
+            <div key={row.id} className="flex min-w-0 flex-wrap items-end gap-2">
               <AttributeLabelSelect
                 value={row.label}
                 presets={QUICK_SPEC_LABELS}
@@ -798,7 +798,7 @@ export function SellerListingForm({
                       return {
                         ...item,
                         label,
-                        value: shouldClearSpecValueOnLabelChange(item.label, label) ? "" : item.value,
+                        value: nextAttributeValue(item.label, label, item.value),
                       };
                     })
                   )
@@ -816,7 +816,7 @@ export function SellerListingForm({
               />
               <button
                 type="button"
-                className="rounded-lg border border-edge px-3 py-2.5"
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-edge"
                 aria-label="Remover linha"
                 disabled={disabled}
                 onClick={() => setQuickSpecs((current) => current.filter((item) => item.id !== row.id))}
@@ -862,7 +862,7 @@ export function SellerListingForm({
                   />
                 )}
                 {group.items.map((row) => (
-                  <div key={row.id} className="mb-2 flex flex-wrap gap-2">
+                  <div key={row.id} className="mb-2 flex min-w-0 flex-wrap items-end gap-2">
                     <AttributeLabelSelect
                       value={row.label}
                       presets={SPEC_LABELS}
@@ -878,9 +878,7 @@ export function SellerListingForm({
                                     return {
                                       ...spec,
                                       label,
-                                      value: shouldClearSpecValueOnLabelChange(spec.label, label)
-                                        ? ""
-                                        : spec.value,
+                                      value: nextAttributeValue(spec.label, label, spec.value),
                                     };
                                   }),
                                 }
@@ -910,7 +908,7 @@ export function SellerListingForm({
                     />
                     <button
                       type="button"
-                      className="rounded-lg border border-edge px-3 py-2.5"
+                      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-edge"
                       aria-label="Remover item"
                       disabled={disabled}
                       onClick={() =>

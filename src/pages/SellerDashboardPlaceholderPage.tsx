@@ -82,10 +82,20 @@ export function SellerDashboardPlaceholderPage() {
   const storeSlug = account?.storeSlug;
   const email = account?.email || session?.email;
 
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
+
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-      <SellerSiteHeader rail />
-      <div className="flex min-h-0 flex-1">
+    <div className="fixed inset-0 flex flex-col overflow-clip bg-canvas">
+      <div className="shrink-0">
+        <SellerSiteHeader rail />
+      </div>
+      <div className="flex min-h-0 min-w-0 flex-1">
         <aside className="hidden w-56 shrink-0 flex-col border-r border-edge/70 lg:flex">
           <div className="px-5 pb-2 pt-6">
             <p className="truncate font-primary text-xl font-bold text-title">{storeName}</p>
@@ -103,7 +113,7 @@ export function SellerDashboardPlaceholderPage() {
           </nav>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-edge/70 px-2 lg:hidden">
             {SECTIONS.map((item) => {
               const selected = section === item.id;
@@ -123,7 +133,7 @@ export function SellerDashboardPlaceholderPage() {
             })}
           </nav>
 
-          <main className="min-h-0 flex-1 overflow-y-auto">
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
             <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8 sm:py-10">
               {section === "home" ? (
                 <HomeSection
