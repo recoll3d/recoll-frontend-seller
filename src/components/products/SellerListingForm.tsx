@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiUpload } from "react-icons/fi";
 
 import {
   DIMENSION_VARIANT_LABELS,
@@ -40,6 +40,28 @@ type VariantOption = {
 };
 type PendingImage = { id: string; file: File; previewUrl: string };
 type FieldErrors = Record<string, string>;
+
+const TECHNICAL_GROUP = "Especificações técnicas";
+
+const ERROR_FIELD_IDS = [
+  ["name", "listing-name"],
+  ["description", "listing-description"],
+  ["categoryTag", "listing-category"],
+  ["priceBrl", "listing-price"],
+  ["promoDiscountBrl", "listing-promo"],
+  ["stock", "listing-stock"],
+  ["dimensions", "listing-weight"],
+] as const;
+
+function scrollToFirstError(errors: FieldErrors) {
+  const match = ERROR_FIELD_IDS.find(([key]) => errors[key]);
+  if (!match) return;
+  window.requestAnimationFrame(() => {
+    const node = document.getElementById(match[1]);
+    node?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (node instanceof HTMLElement) node.focus({ preventScroll: true });
+  });
+}
 
 function nextId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -83,7 +105,7 @@ function createOption(axis: string, index = 0): VariantOption {
 function initialSpecGroup(): SpecGroup {
   return {
     id: nextId("grp"),
-    group: "Especificações técnicas",
+    group: TECHNICAL_GROUP,
     locked: true,
     items: [{ id: nextId("spec"), label: "Material", value: "" }],
   };
@@ -239,7 +261,8 @@ export function SellerListingForm({
     const errors = validate();
     setFieldErrors(errors);
     if (Object.keys(errors).length) {
-      setError("Corrija os campos destacados antes de salvar.");
+      setError(null);
+      scrollToFirstError(errors);
       return;
     }
 
@@ -314,6 +337,7 @@ export function SellerListingForm({
               label="Nome do produto"
               value={name}
               maxLength={255}
+              placeholder="Ex.: Filamento PLA reciclado preto 1,75 mm"
               error={fieldErrors.name}
               onChange={(event) => {
                 setName(event.target.value);
@@ -329,6 +353,7 @@ export function SellerListingForm({
             <textarea
               id="listing-description"
               className={`${inputClass("description")} input-area`}
+              placeholder="Material, medida, para que serve e o que o comprador recebe."
               value={description}
               maxLength={4000}
               onChange={(event) => {
@@ -373,6 +398,7 @@ export function SellerListingForm({
               id="listing-price"
               className={inputClass("priceBrl")}
               inputMode="decimal"
+              placeholder="Ex.: 89,90"
               value={priceBrl}
               onChange={(event) => {
                 setPriceBrl(formatPriceMaskFromDigits(event.target.value));
@@ -394,6 +420,7 @@ export function SellerListingForm({
               id="listing-promo"
               className={inputClass("promoDiscountBrl")}
               inputMode="decimal"
+              placeholder="Ex.: 10,00"
               value={promo}
               onChange={(event) => {
                 setPromo(formatPriceMaskFromDigits(event.target.value));
@@ -415,6 +442,7 @@ export function SellerListingForm({
             <textarea
               id="listing-highlights"
               className="input input-area"
+              placeholder={"Uma vantagem por linha.\nEx.: Feito com PLA reciclado"}
               value={highlights}
               onChange={(event) => setHighlights(event.target.value)}
               disabled={disabled}
@@ -450,7 +478,8 @@ export function SellerListingForm({
             </div>
           ))}
         </div>
-        <label className="button button-outline mt-3 inline-flex w-auto cursor-pointer px-4 text-sm">
+        <label className="button button-outline mt-3 inline-flex w-auto cursor-pointer items-center gap-2 px-4 text-sm">
+          <FiUpload aria-hidden />
           Adicionar imagens
           <input
             type="file"
@@ -495,6 +524,7 @@ export function SellerListingForm({
               <FormTextField
                 id="listing-material-other"
                 label="Descreva o material"
+                placeholder="Ex.: PET de garrafa"
                 value={materialOther}
                 onChange={(event) => setMaterialOther(event.target.value)}
                 disabled={disabled}
@@ -504,6 +534,7 @@ export function SellerListingForm({
               <FormTextField
                 id="listing-origin"
                 label="Origem do material"
+                placeholder="Ex.: Aparos de impressão coletados em Brasília"
                 value={materialOrigin}
                 onChange={(event) => setMaterialOrigin(event.target.value)}
                 disabled={disabled}
@@ -512,6 +543,7 @@ export function SellerListingForm({
             <FormTextField
               id="listing-pack"
               label="Embalagem"
+              placeholder="Ex.: Caixa de papelão reciclado"
               value={packaging}
               onChange={(event) => setPackaging(event.target.value)}
               disabled={disabled}
@@ -519,6 +551,7 @@ export function SellerListingForm({
             <FormTextField
               id="listing-cert"
               label="Certificação / selo (opcional)"
+              placeholder="Ex.: Selo eureciclo"
               value={certification}
               onChange={(event) => setCertification(event.target.value)}
               disabled={disabled}
@@ -827,16 +860,18 @@ export function SellerListingForm({
                       }
                     />
                   )}
-                  <button
-                    type="button"
-                    className="shrink-0 text-sm font-semibold text-text hover:text-title"
-                    disabled={disabled}
-                    onClick={() =>
-                      setSpecGroups((current) => current.filter((item) => item.id !== group.id))
-                    }
-                  >
-                    Remover grupo
-                  </button>
+                  {group.group !== TECHNICAL_GROUP ? (
+                    <button
+                      type="button"
+                      className="shrink-0 text-sm font-semibold text-text hover:text-title"
+                      disabled={disabled}
+                      onClick={() =>
+                        setSpecGroups((current) => current.filter((item) => item.id !== group.id))
+                      }
+                    >
+                      Remover grupo
+                    </button>
+                  ) : null}
                 </div>
                 {group.items.map((row) => (
                   <div key={row.id} className="mb-2 flex min-w-0 flex-wrap items-end gap-2">
@@ -959,6 +994,7 @@ export function SellerListingForm({
               id="listing-stock"
               className={inputClass("stock")}
               inputMode="numeric"
+              placeholder="Ex.: 24"
               value={stock}
               onChange={(event) => {
                 setStock(event.target.value.replace(/\D/g, ""));
@@ -971,6 +1007,7 @@ export function SellerListingForm({
           <FormTextField
             id="listing-weight"
             label="Peso (g) — opcional"
+            placeholder="Ex.: 1000"
             inputMode="numeric"
             value={weightG}
             onChange={(event) => setWeightG(event.target.value.replace(/\D/g, ""))}
@@ -979,6 +1016,7 @@ export function SellerListingForm({
           <FormTextField
             id="listing-height"
             label="Altura (cm) — opcional"
+            placeholder="Ex.: 8"
             inputMode="numeric"
             value={heightCm}
             onChange={(event) => setHeightCm(event.target.value.replace(/\D/g, ""))}
@@ -987,6 +1025,7 @@ export function SellerListingForm({
           <FormTextField
             id="listing-width"
             label="Largura (cm) — opcional"
+            placeholder="Ex.: 8"
             inputMode="numeric"
             value={widthCm}
             onChange={(event) => setWidthCm(event.target.value.replace(/\D/g, ""))}
@@ -995,6 +1034,7 @@ export function SellerListingForm({
           <FormTextField
             id="listing-length"
             label="Comprimento (cm) — opcional"
+            placeholder="Ex.: 25"
             inputMode="numeric"
             value={lengthCm}
             onChange={(event) => setLengthCm(event.target.value.replace(/\D/g, ""))}
